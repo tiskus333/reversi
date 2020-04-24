@@ -119,13 +119,16 @@ public class Player {
     }
 
     public void debug_move() {
-
+        int x;
+        int y;
         Scanner scan = new Scanner(System.in);
-        System.out.println("input 2 cooardinates");
-        int x = scan.nextInt();
-        int y = scan.nextInt();
-        if (possible_moves[x][y] == 1)
-            move(x, y);
+        do {
+            System.out.println("input 2 cooardinates: ");
+            x = scan.nextInt();
+            y = scan.nextInt();
+
+        } while (possible_moves[x][y] != 1);
+        move(x, y);
 
     }
 
