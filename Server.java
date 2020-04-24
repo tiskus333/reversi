@@ -60,7 +60,7 @@ public class Server {
                 else
                     player_white = sc;
             }
-            System.out.println("Both plawes connected. No longer accepting new players.");
+            System.out.println("Both players connected. No longer accepting new players.");
         } catch (IOException e) {
             System.out.println("IOExcpetion from acceptConnection().");
         }
