@@ -9,6 +9,8 @@ public class Player {
     private final int BOARD_SIZE = 8;
     public int player_turn = BLACK;
     public int my_color;
+    private int player_won;
+    private boolean skip_turn = false;
 
     private int board[][];
     private int possible_moves[][];
@@ -20,6 +22,7 @@ public class Player {
     public Player() {
         board = new int[BOARD_SIZE][BOARD_SIZE];
         possible_moves = new int[BOARD_SIZE][BOARD_SIZE];
+        player_won = EMPTY;
     }
 
     public void connectToServer() {
@@ -42,14 +45,23 @@ public class Player {
         }
     }
 
+    public void closeConnection() {
+        try {
+            socket.close();
+        } catch (IOException e) {
+            System.out.println("Cannot close connection.");
+        }
+    }
+
     public void requestBoardState() {
         System.out.println("Sending request for board state.");
         try {
             dataOut.writeInt(my_color);
             dataOut.flush();
-        } catch (Exception e) {
+        } catch (IOException e) {
             System.out.println("Cannot connect to the server.");
         }
+
         System.out.println("Reading board");
         try {
             for (int i = 0; i < BOARD_SIZE; ++i)
@@ -62,27 +74,29 @@ public class Player {
     }
 
     public void requestValidMoves() {
-        System.out.println("Sending request for board state.");
+        System.out.println("Sending request for possible moves.");
         try {
             dataOut.writeInt(my_color);
             dataOut.flush();
-        } catch (Exception e) {
+            skip_turn = dataIn.readBoolean();
+        } catch (IOException e) {
             System.out.println("Cannot connect to the server.");
         }
-        System.out.println("Reading moves");
-        try {
-            for (int i = 0; i < BOARD_SIZE; ++i)
-                for (int j = 0; j < BOARD_SIZE; ++j) {
-                    possible_moves[i][j] = dataIn.readInt();
-                }
-        } catch (IOException e) {
-            System.out.println("IOException cannot read possible moves from server.");
+        if (!skip_turn) {
+            System.out.println("Reading moves");
+            try {
+                for (int i = 0; i < BOARD_SIZE; ++i)
+                    for (int j = 0; j < BOARD_SIZE; ++j) {
+                        possible_moves[i][j] = dataIn.readInt();
+                    }
+            } catch (IOException e) {
+                System.out.println("IOException cannot read possible moves from server.");
+            }
+            displayValidMoves();
         }
     }
 
     public void displayBoard() {
-        //System.out.println("black: " + black_pices_nr + " white: " + white_pieces_nr);
-
         System.out.println("BOARD STATE");
         for (int i = 0; i < BOARD_SIZE; ++i) {
             for (int j = 0; j < BOARD_SIZE; ++j) {
@@ -90,12 +104,9 @@ public class Player {
             }
             System.out.println();
         }
-
     }
 
     public void displayValidMoves() {
-        //System.out.println("black: " + black_pices_nr + " white: " + white_pieces_nr);
-
         System.out.println("POSSIBLE MOVES");
         for (int i = 0; i < BOARD_SIZE; ++i) {
             for (int j = 0; j < BOARD_SIZE; ++j) {
@@ -106,53 +117,82 @@ public class Player {
     }
 
     public void move(int x, int y) {
-
-        try {
-            dataOut.writeInt(x);
-            dataOut.writeInt(y);
-            dataOut.flush();
-            player_turn *= -1;
-        } catch (IOException e) {
-            System.out.println("IOException, cannot send move to server.");
+        if (!skip_turn) {
+            try {
+                dataOut.writeInt(x);
+                dataOut.writeInt(y);
+                dataOut.flush();
+                player_turn *= -1;
+            } catch (IOException e) {
+                System.out.println("IOException, cannot send move to server.");
+            }
         }
-
     }
 
     public void debug_move() {
-        int x;
-        int y;
-        Scanner scan = new Scanner(System.in);
-        do {
-            System.out.println("input 2 cooardinates: ");
-            x = scan.nextInt();
-            y = scan.nextInt();
-
-        } while (possible_moves[x][y] != 1);
-        move(x, y);
-
+        if (!skip_turn) {
+            int x;
+            int y;
+            Scanner scan = new Scanner(System.in);
+            do {
+                System.out.println("input 2 cooardinates: ");
+                x = scan.nextInt();
+                y = scan.nextInt();
+            } while (possible_moves[x][y] != 1);
+            move(x, y);
+        }
     }
 
     public void waitForTurn() {
         try {
             player_turn = dataIn.readInt();
+            if (player_turn == 100) {
+                player_won = -my_color;
+                System.out.println("UPS i lost");
+            }
             System.out.println("My turn " + (player_turn == my_color));
         } catch (IOException e) {
+        }
+    }
+
+    public void checkForWin() {
+        System.out.println("Sending request for win conditin.");
+        try {
+            dataOut.writeInt(my_color);
+            dataOut.flush();
+        } catch (IOException e) {
+            System.out.println("Cannot connect to the server.");
+        }
+        try {
+            System.out.println("Checking if i won.");
+            player_won = dataIn.readInt();
+        } catch (IOException e) {
+            System.out.println("Cannot read winner info.");
         }
     }
 
     public static void main(String[] args) {
         Player player = new Player();
         player.connectToServer();
-        while (true) {
+        while (player.player_won == player.EMPTY) {
             if (player.my_color == player.player_turn) {
                 player.requestBoardState();
                 player.displayBoard();
                 player.requestValidMoves();
-                player.displayValidMoves();
-                player.debug_move();
+                if (!player.skip_turn) {
+                    player.debug_move();
+                    player.checkForWin();
+                } else {
+                    player.player_turn = -player.my_color;
+                }
             } else
                 player.waitForTurn();
         }
-        //player.move(0, 0);
+        System.out.print("Game finished! You ");
+        if (player.player_won == player.my_color)
+            System.out.println(" win! Congratulations!");
+        else
+            System.out.println(" lost! Better luck next time!");
+        player.closeConnection();
     }
 }

@@ -12,8 +12,8 @@ public class Server {
     public final int BOARD_SIZE = 8;
 
     public int player_turn = BLACK;
-    public int white_pieces_nr = 2;
-    public int black_pices_nr = 2;
+    public int white_pieces_nr;
+    public int black_pices_nr;
     public int player_won;
     private int player_nr;
     private boolean is_possible_move;
@@ -39,6 +39,7 @@ public class Server {
     public Server() {
         System.out.println("Started game server.");
         player_nr = 0;
+        player_won = EMPTY;
         try {
             ss = new ServerSocket(60065);
         } catch (IOException e) {
@@ -87,6 +88,7 @@ public class Server {
         private DataInputStream dataIn;
         private DataOutputStream dataOut;
         private int player_id;
+        private boolean skip_turn;
 
         public ServerConnection(Socket s, int id) {
             socket = s;
@@ -99,22 +101,21 @@ public class Server {
                 dataOut = new DataOutputStream(socket.getOutputStream());
                 dataOut.writeInt(id);
                 dataOut.flush();
-            } catch (Exception e) {
+            } catch (IOException e) {
                 System.out.println("IOException from ServerConnection() constructor.");
             }
         }
 
         private void sendBoardState() {
-            // while (player_id != player_turn);
             System.out.println("Waiting for player to send board state to.");
             try {
                 dataIn.readInt();
-            } catch (Exception e) {
+            } catch (IOException e) {
                 System.out.println("Cannot connect to player #" + player_id);
             }
 
             try {
-                System.out.println("Sending board to: " + player_turn);
+                System.out.println("Sending board to: " + player_id);
                 for (int i = 0; i < BOARD_SIZE; ++i)
                     for (int j = 0; j < BOARD_SIZE; ++j) {
                         dataOut.writeInt(board[i][j]);
@@ -122,18 +123,26 @@ public class Server {
                 dataOut.flush();
             } catch (IOException e) {
                 System.out.println("IOException, cannot send board to client#" + player_id);
+                player_won = -player_id;
             }
         }
 
         private void sendValidMoves() {
-            //while (player_id != player_turn);
             System.out.println("Waiting for player to send possible moves to.");
             try {
                 dataIn.readInt();
-            } catch (Exception e) {
+            } catch (IOException e) {
                 System.out.println("Cannot connect to player #" + player_id);
             }
+            getValidPositions(player_id);
+            skip_turn = !is_possible_move;
             try {
+                dataOut.writeBoolean(skip_turn);
+                dataOut.flush();
+                if (skip_turn) {
+                    System.out.println("Skipping player #" + player_id + " turn");
+                    return;
+                }
                 System.out.println("Sending moves to: " + player_turn);
                 for (int i = 0; i < BOARD_SIZE; ++i)
                     for (int j = 0; j < BOARD_SIZE; ++j) {
@@ -142,6 +151,7 @@ public class Server {
                 dataOut.flush();
             } catch (IOException e) {
                 System.out.println("IOException, cannot send possible moves to client #" + player_id);
+                player_won = -player_id;
             }
         }
 
@@ -152,69 +162,119 @@ public class Server {
                 y = dataIn.readInt();
                 System.out.println("Recieved move " + x + ":" + y);
                 move(x, y, player_id);
-                //switchPlayers();
                 displayBoard();
             } catch (IOException e) {
                 System.out.println("Cannot read move from player #" + player_id);
+                player_won = -player_id;
             }
         }
 
         private void switchPlayers() {
             player_turn *= -1;
-
         }
 
         private void notifyEnemy() {
+            switchPlayers();
+            System.out.println("player " + (player_id) + " fnished");
             try {
-                switchPlayers();
-                System.out.println("player " + (player_id) + " fnished");
                 player_black.dataOut.writeInt(player_turn);
                 player_black.dataOut.flush();
+
+            } catch (IOException e) {
+                System.out.println("IOException, cannot notify player #-1");
+                player_won = WHITE;
+            }
+            try {
                 player_white.dataOut.writeInt(player_turn);
                 player_white.dataOut.flush();
 
-            } catch (Exception e) {
-                System.out.println("IOException, cannot notify players");
+            } catch (IOException e) {
+                System.out.println("IOException, cannot notify player #1");
+                player_won = BLACK;
             }
         }
 
-        private void waitForEnemy() {
+        private void checkForWinner() {
+            System.out.println("Waiting for player to send winner to.");
             try {
-                player_turn = dataIn.readInt();
+                dataIn.readInt();
             } catch (IOException e) {
-                System.out.println("IOException, cannot read player turn");
+                System.out.println("Cannot connect to player #" + player_id);
+                player_won = -player_id;
+            }
+
+            try {
+                if (white_pieces_nr == (BOARD_SIZE * BOARD_SIZE) || black_pices_nr == 0 || player_won == WHITE) {
+                    player_won = WHITE;
+                    player_black.dataOut.writeInt(WHITE);
+                    player_black.dataOut.flush();
+
+                } else if (black_pices_nr == (BOARD_SIZE * BOARD_SIZE) || white_pieces_nr == 0 || player_won == BLACK) {
+                    player_won = BLACK;
+                    player_black.dataOut.writeInt(BLACK);
+                    player_black.dataOut.flush();
+                } else {
+                    player_black.dataOut.writeInt(EMPTY);
+                    player_black.dataOut.flush();
+
+                }
+            } catch (IOException e) {
+                System.out.println("Cannot connect to player #-1");
+            }
+
+            try {
+                if (white_pieces_nr == (BOARD_SIZE * BOARD_SIZE) || black_pices_nr == 0 || player_won == WHITE) {
+
+                    player_won = WHITE;
+                    player_white.dataOut.writeInt(WHITE);
+                    player_white.dataOut.flush();
+                } else if (black_pices_nr == (BOARD_SIZE * BOARD_SIZE) || white_pieces_nr == 0 || player_won == BLACK) {
+                    player_won = BLACK;
+                    player_white.dataOut.writeInt(BLACK);
+                    player_white.dataOut.flush();
+                } else {
+                    player_white.dataOut.writeInt(EMPTY);
+                    player_white.dataOut.flush();
+                }
+            } catch (IOException e) {
+                System.out.println("Cannot connect to player #1");
+            }
+            if (player_won == BLACK)
+                System.out.println("Player BLACK wins!");
+            else if (player_won == WHITE)
+                System.out.println("Player WHITE wins!");
+        }
+
+        private void endGame() {
+            try {
+                if (player_won == BLACK) {
+                    player_white.dataOut.writeInt(100);
+                    player_white.dataOut.flush();
+                } else {
+                    player_black.dataOut.writeInt(100);
+                    player_black.dataOut.flush();
+                }
+            } catch (IOException e) {
             }
         }
 
         @Override
         public void run() {
-            while (true) {
-                // System.out.println(player_id + "" + player_turn);
-                //if (player_id == player_turn) {
-                System.out.println("From player #" + player_id + "Now plays: " + player_turn);
+            while (player_won == EMPTY) {
                 sendBoardState();
-                getValidPositions(player_id);
-                if (is_possible_move) {
-                    sendValidMoves();
+                sendValidMoves();
+                if (!skip_turn) {
                     recieveMove();
+                    checkForWinner();
+                }
+                if (player_won != EMPTY) {
+                    endGame();
+                    return;
                 }
                 notifyEnemy();
-                //} else
-                //  waitForEnemy();
             }
         }
-
     }
-
-    /**
-     * 
-     * 
-     * 
-     * 
-     * 
-     * @param player
-     * @return
-     */
 
     public int[][] getValidPositions(int player) {
         int tmp_move;
@@ -273,6 +333,12 @@ public class Server {
 
         board[3][3] = board[4][4] = WHITE;
         board[3][4] = board[4][3] = BLACK;
+        black_pices_nr = 2;
+        white_pieces_nr = 2;
+        // board[0][0] = board[0][2] = board[0][4] = WHITE;
+        // board[0][1] = BLACK;
+        // black_pices_nr = 1;
+        // white_pieces_nr = 3;
     }
 
     public void move(int x, int y, int player) {
@@ -348,22 +414,10 @@ public class Server {
     }
 
     public static void main(String[] args) {
-        // Window window = new Window();
-        // window.drawBoard();
         Server server = new Server();
         server.initBoard();
         server.acceptConnections();
         server.runGame();
-
         server.closeConnection();
-        // displayBoard();
-        // displayPossiblePositions(BLACK);
-        // move(2, 3, BLACK);
-        // displayBoard();
-        // displayPossiblePositions(WHITE);
-        // move(4, 2, WHITE);
-        // displayBoard();
-        // displayPossiblePositions(BLACK);
-        // move(0, 0, WHITE);
     }
 }
