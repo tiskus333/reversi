@@ -1,3 +1,5 @@
+package server;
+
 import java.io.*;
 import java.net.*;
 
@@ -116,6 +118,8 @@ public class Server {
 
             try {
                 System.out.println("Sending board to: " + player_id);
+                dataOut.writeInt(black_pices_nr);
+                dataOut.writeInt(white_pieces_nr);
                 for (int i = 0; i < BOARD_SIZE; ++i)
                     for (int j = 0; j < BOARD_SIZE; ++j) {
                         dataOut.writeInt(board[i][j]);
@@ -213,6 +217,16 @@ public class Server {
                     player_won = BLACK;
                     player_black.dataOut.writeInt(BLACK);
                     player_black.dataOut.flush();
+                } else if (black_pices_nr + white_pieces_nr == (BOARD_SIZE * BOARD_SIZE)
+                        && black_pices_nr > white_pieces_nr) {
+                    player_won = BLACK;
+                    player_black.dataOut.writeInt(BLACK);
+                    player_black.dataOut.flush();
+                } else if (black_pices_nr + white_pieces_nr == (BOARD_SIZE * BOARD_SIZE)
+                        && black_pices_nr < white_pieces_nr) {
+                    player_won = BLACK;
+                    player_black.dataOut.writeInt(WHITE);
+                    player_black.dataOut.flush();
                 } else {
                     player_black.dataOut.writeInt(EMPTY);
                     player_black.dataOut.flush();
@@ -231,6 +245,16 @@ public class Server {
                 } else if (black_pices_nr == (BOARD_SIZE * BOARD_SIZE) || white_pieces_nr == 0 || player_won == BLACK) {
                     player_won = BLACK;
                     player_white.dataOut.writeInt(BLACK);
+                    player_white.dataOut.flush();
+                } else if (black_pices_nr + white_pieces_nr == (BOARD_SIZE * BOARD_SIZE)
+                        && black_pices_nr > white_pieces_nr) {
+                    player_won = BLACK;
+                    player_white.dataOut.writeInt(BLACK);
+                    player_white.dataOut.flush();
+                } else if (black_pices_nr + white_pieces_nr == (BOARD_SIZE * BOARD_SIZE)
+                        && black_pices_nr < white_pieces_nr) {
+                    player_won = BLACK;
+                    player_white.dataOut.writeInt(WHITE);
                     player_white.dataOut.flush();
                 } else {
                     player_white.dataOut.writeInt(EMPTY);
@@ -265,6 +289,9 @@ public class Server {
                 sendValidMoves();
                 if (!skip_turn) {
                     recieveMove();
+                    checkForWinner();
+                    sendBoardState();
+                } else {
                     checkForWinner();
                 }
                 if (player_won != EMPTY) {
@@ -335,10 +362,6 @@ public class Server {
         board[3][4] = board[4][3] = BLACK;
         black_pices_nr = 2;
         white_pieces_nr = 2;
-        // board[0][0] = board[0][2] = board[0][4] = WHITE;
-        // board[0][1] = BLACK;
-        // black_pices_nr = 1;
-        // white_pieces_nr = 3;
     }
 
     public void move(int x, int y, int player) {
@@ -406,18 +429,12 @@ public class Server {
         }
     }
 
-    public int[] getScore() {
-        int score[] = new int[2];
-        score[0] = white_pieces_nr;
-        score[1] = black_pices_nr;
-        return score;
-    }
-
     public static void main(String[] args) {
         Server server = new Server();
         server.initBoard();
         server.acceptConnections();
         server.runGame();
         server.closeConnection();
+
     }
 }

@@ -1,3 +1,5 @@
+package reversi;
+
 import java.io.*;
 import java.net.*;
 import java.util.Scanner;
@@ -11,6 +13,7 @@ public class Player {
     public int my_color;
     private int player_won;
     private boolean skip_turn = false;
+    private int points[];
 
     private int board[][];
     private int possible_moves[][];
@@ -25,11 +28,11 @@ public class Player {
         player_won = EMPTY;
     }
 
-    public void connectToServer() {
+    public void connectToServer(String ip) {
         int tmp_id;
         System.out.println("Connecting to server at localhost:60065");
         try {
-            socket = new Socket("localhost", 60065);
+            socket = new Socket(ip, 60065);
             dataIn = new DataInputStream(socket.getInputStream());
             dataOut = new DataOutputStream(socket.getOutputStream());
             tmp_id = dataIn.readInt();
@@ -53,6 +56,18 @@ public class Player {
         }
     }
 
+    public void initBoard() {
+        for (int i = 0; i < BOARD_SIZE; ++i)
+            for (int j = 0; j < BOARD_SIZE; ++j)
+                board[i][j] = EMPTY;
+
+        board[3][3] = board[4][4] = WHITE;
+        board[3][4] = board[4][3] = BLACK;
+        points = new int[2];
+        points[0] = 2;
+        points[1] = 2;
+    }
+
     public void requestBoardState() {
         System.out.println("Sending request for board state.");
         try {
@@ -64,6 +79,8 @@ public class Player {
 
         System.out.println("Reading board");
         try {
+            points[0] = dataIn.readInt();
+            points[1] = dataIn.readInt();
             for (int i = 0; i < BOARD_SIZE; ++i)
                 for (int j = 0; j < BOARD_SIZE; ++j) {
                     board[i][j] = dataIn.readInt();
@@ -92,7 +109,6 @@ public class Player {
             } catch (IOException e) {
                 System.out.println("IOException cannot read possible moves from server.");
             }
-            displayValidMoves();
         }
     }
 
@@ -143,6 +159,14 @@ public class Player {
         }
     }
 
+    public void debug_move2(int[] move) {
+        if (!skip_turn) {
+            System.out.println(move[0] + " " + move[1]);
+            System.out.println("sending");
+            move(move[0], move[1]);
+        }
+    }
+
     public void waitForTurn() {
         try {
             player_turn = dataIn.readInt();
@@ -173,26 +197,34 @@ public class Player {
 
     public static void main(String[] args) {
         Player player = new Player();
-        player.connectToServer();
+        player.connectToServer("localhost");
+        Window window = new Window(player.my_color, player.player_turn);
+        player.initBoard();
+
         while (player.player_won == player.EMPTY) {
             if (player.my_color == player.player_turn) {
                 player.requestBoardState();
-                player.displayBoard();
+                window.displayBoard(player.board, player.points);
                 player.requestValidMoves();
+                window.displayPossibleMoves(player.possible_moves);
                 if (!player.skip_turn) {
-                    player.debug_move();
+                    player.debug_move2(window.getMove());
                     player.checkForWin();
+                    player.requestBoardState();
+                    window.displayBoard(player.board, player.points);
                 } else {
+                    player.checkForWin();
                     player.player_turn = -player.my_color;
                 }
-            } else
+            } else {
+                window.displayBoard(player.board, player.points);
                 player.waitForTurn();
+            }
         }
-        System.out.print("Game finished! You ");
-        if (player.player_won == player.my_color)
-            System.out.println(" win! Congratulations!");
-        else
-            System.out.println(" lost! Better luck next time!");
+        player.requestBoardState();
+        window.displayBoard(player.board, player.points);
+        window.displayWinner(player.player_won);
         player.closeConnection();
+        return;
     }
 }
