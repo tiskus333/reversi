@@ -300,6 +300,7 @@ public class Server {
                 }
                 notifyEnemy();
             }
+            sendBoardState();
         }
     }
 

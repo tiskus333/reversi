@@ -132,7 +132,7 @@ public class Window extends JFrame {
         else
             message = "YOU LOOSE! BETTER LUCK NEXT TIME!";
         JOptionPane.showMessageDialog(this, message, "Game Finished!", 1);
-        // System.exit(0);
+        System.exit(0);
     }
 
     public int[] getMove() {

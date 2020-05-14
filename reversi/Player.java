@@ -223,8 +223,8 @@ public class Player {
         }
         player.requestBoardState();
         window.displayBoard(player.board, player.points);
-        window.displayWinner(player.player_won);
         player.closeConnection();
+        window.displayWinner(player.player_won);
         return;
     }
 }
