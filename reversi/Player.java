@@ -206,8 +206,8 @@ public class Player {
                 player.requestBoardState();
                 window.displayBoard(player.board, player.points);
                 player.requestValidMoves();
-                window.displayPossibleMoves(player.possible_moves);
                 if (!player.skip_turn) {
+                    window.displayPossibleMoves(player.possible_moves);
                     player.debug_move2(window.getMove());
                     player.checkForWin();
                     player.requestBoardState();

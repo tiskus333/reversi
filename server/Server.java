@@ -206,7 +206,7 @@ public class Server {
                 System.out.println("Cannot connect to player #" + player_id);
                 player_won = -player_id;
             }
-
+            //TODO shorten ifs
             try {
                 if (white_pieces_nr == (BOARD_SIZE * BOARD_SIZE) || black_pices_nr == 0 || player_won == WHITE) {
                     player_won = WHITE;
@@ -223,6 +223,14 @@ public class Server {
                     player_black.dataOut.flush();
                 } else if ((black_pices_nr + white_pieces_nr) == (BOARD_SIZE * BOARD_SIZE)
                         && black_pices_nr < white_pieces_nr) {
+                    player_won = WHITE;
+                    player_black.dataOut.writeInt(WHITE);
+                    player_black.dataOut.flush();
+                } else if (player_black.skip_turn && player_white.skip_turn && black_pices_nr > white_pieces_nr) {
+                    player_won = BLACK;
+                    player_black.dataOut.writeInt(BLACK);
+                    player_black.dataOut.flush();
+                } else if (player_black.skip_turn && player_white.skip_turn && black_pices_nr < white_pieces_nr) {
                     player_won = WHITE;
                     player_black.dataOut.writeInt(WHITE);
                     player_black.dataOut.flush();
@@ -245,13 +253,21 @@ public class Server {
                     player_won = BLACK;
                     player_white.dataOut.writeInt(BLACK);
                     player_white.dataOut.flush();
-                } else if (black_pices_nr + white_pieces_nr == (BOARD_SIZE * BOARD_SIZE)
+                } else if ((black_pices_nr + white_pieces_nr) == (BOARD_SIZE * BOARD_SIZE)
                         && black_pices_nr > white_pieces_nr) {
                     player_won = BLACK;
                     player_white.dataOut.writeInt(BLACK);
                     player_white.dataOut.flush();
-                } else if (black_pices_nr + white_pieces_nr == (BOARD_SIZE * BOARD_SIZE)
+                } else if ((black_pices_nr + white_pieces_nr) == (BOARD_SIZE * BOARD_SIZE)
                         && black_pices_nr < white_pieces_nr) {
+                    player_won = WHITE;
+                    player_white.dataOut.writeInt(WHITE);
+                    player_white.dataOut.flush();
+                } else if (player_black.skip_turn && player_white.skip_turn && black_pices_nr > white_pieces_nr) {
+                    player_won = BLACK;
+                    player_white.dataOut.writeInt(BLACK);
+                    player_white.dataOut.flush();
+                } else if (player_black.skip_turn && player_white.skip_turn && black_pices_nr < white_pieces_nr) {
                     player_won = WHITE;
                     player_white.dataOut.writeInt(WHITE);
                     player_white.dataOut.flush();
@@ -294,12 +310,13 @@ public class Server {
                     checkForWinner();
                 }
                 if (player_won != EMPTY) {
-                    sendBoardState();
                     endGame();
+                    sendBoardState();
                     return;
                 }
                 notifyEnemy();
             }
+            sendBoardState();
         }
     }
 
@@ -435,6 +452,5 @@ public class Server {
         server.acceptConnections();
         server.runGame();
         server.closeConnection();
-
     }
 }
