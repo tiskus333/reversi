@@ -212,19 +212,18 @@ public class Server {
                     player_won = WHITE;
                     player_black.dataOut.writeInt(WHITE);
                     player_black.dataOut.flush();
-
                 } else if (black_pices_nr == (BOARD_SIZE * BOARD_SIZE) || white_pieces_nr == 0 || player_won == BLACK) {
                     player_won = BLACK;
                     player_black.dataOut.writeInt(BLACK);
                     player_black.dataOut.flush();
-                } else if (black_pices_nr + white_pieces_nr == (BOARD_SIZE * BOARD_SIZE)
+                } else if ((black_pices_nr + white_pieces_nr) == (BOARD_SIZE * BOARD_SIZE)
                         && black_pices_nr > white_pieces_nr) {
                     player_won = BLACK;
                     player_black.dataOut.writeInt(BLACK);
                     player_black.dataOut.flush();
-                } else if (black_pices_nr + white_pieces_nr == (BOARD_SIZE * BOARD_SIZE)
+                } else if ((black_pices_nr + white_pieces_nr) == (BOARD_SIZE * BOARD_SIZE)
                         && black_pices_nr < white_pieces_nr) {
-                    player_won = BLACK;
+                    player_won = WHITE;
                     player_black.dataOut.writeInt(WHITE);
                     player_black.dataOut.flush();
                 } else {
@@ -253,7 +252,7 @@ public class Server {
                     player_white.dataOut.flush();
                 } else if (black_pices_nr + white_pieces_nr == (BOARD_SIZE * BOARD_SIZE)
                         && black_pices_nr < white_pieces_nr) {
-                    player_won = BLACK;
+                    player_won = WHITE;
                     player_white.dataOut.writeInt(WHITE);
                     player_white.dataOut.flush();
                 } else {
@@ -295,6 +294,7 @@ public class Server {
                     checkForWinner();
                 }
                 if (player_won != EMPTY) {
+                    sendBoardState();
                     endGame();
                     return;
                 }
