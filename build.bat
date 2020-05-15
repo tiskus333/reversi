@@ -11,10 +11,6 @@ cd ..
 )
 cd..
 cd bin
-cd server
-jar cvfe server.jar server.Server *.class
-cd..
-cd reversi
-jar cvfe player.jar reversi.Player *.class ..\..\res
-cd..
+jar -cvfe server.jar server.Server server\*.class
+jar -cvfe player.jar reversi.Player reversi\*.class ..\res
 cd..
