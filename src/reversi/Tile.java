@@ -1,4 +1,4 @@
-package reversi;
+package src.reversi;
 
 import javax.swing.*;
 //import java.awt.*;
