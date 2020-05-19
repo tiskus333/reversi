@@ -1,11 +1,10 @@
-package reversi;
+package src.reversi;
 
 import javax.swing.*;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.*;
 
 @SuppressWarnings("serial")
 public class Window extends JFrame {
@@ -28,6 +27,7 @@ public class Window extends JFrame {
     private final int EMPTY = 0;
     private final int WHITE = 1;
     private final int BLACK = -1;
+    private final int DRAW = 2;
     private int[] moves = new int[2];
     private boolean moved = false;
 
@@ -129,8 +129,10 @@ public class Window extends JFrame {
         String message;
         if (winner == my_color)
             message = "YOU WIN! CONGRATULATIONS!";
-        else
+        else if (winner == -my_color)
             message = "YOU LOOSE! BETTER LUCK NEXT TIME!";
+        else
+            message = "IT'S A DRAW!";
         JOptionPane.showMessageDialog(this, message, "Game Finished!", 1);
         System.exit(0);
     }
