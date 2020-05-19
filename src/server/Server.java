@@ -1,4 +1,4 @@
-package server;
+package src.server;
 
 import java.io.*;
 import java.net.*;
@@ -11,6 +11,7 @@ public class Server {
     public final int EMPTY = 0;
     public final int WHITE = 1;
     public final int BLACK = -1;
+    private final int DRAW = 2;
     public final int BOARD_SIZE = 8;
 
     public int player_turn = BLACK;
@@ -206,75 +207,37 @@ public class Server {
                 System.out.println("Cannot connect to player #" + player_id);
                 player_won = -player_id;
             }
-            //TODO shorten ifs
+            //add draw condition
+            if (white_pieces_nr == (BOARD_SIZE * BOARD_SIZE) || black_pices_nr == 0 || player_won == WHITE) {
+                player_won = WHITE;
+            } else if (black_pices_nr == (BOARD_SIZE * BOARD_SIZE) || white_pieces_nr == 0 || player_won == BLACK) {
+                player_won = BLACK;
+            } else if ((black_pices_nr + white_pieces_nr) == (BOARD_SIZE * BOARD_SIZE)) {
+                if (black_pices_nr < white_pieces_nr)
+                    player_won = WHITE;
+                if (black_pices_nr > white_pieces_nr)
+                    player_won = BLACK;
+                if (black_pices_nr == white_pieces_nr)
+                    player_won = DRAW;
+            } else if (player_black.skip_turn && player_white.skip_turn) {
+                if (black_pices_nr < white_pieces_nr)
+                    player_won = WHITE;
+                if (black_pices_nr > white_pieces_nr)
+                    player_won = BLACK;
+                if (black_pices_nr == white_pieces_nr)
+                    player_won = DRAW;
+            }
             try {
-                if (white_pieces_nr == (BOARD_SIZE * BOARD_SIZE) || black_pices_nr == 0 || player_won == WHITE) {
-                    player_won = WHITE;
-                    player_black.dataOut.writeInt(WHITE);
-                    player_black.dataOut.flush();
-                } else if (black_pices_nr == (BOARD_SIZE * BOARD_SIZE) || white_pieces_nr == 0 || player_won == BLACK) {
-                    player_won = BLACK;
-                    player_black.dataOut.writeInt(BLACK);
-                    player_black.dataOut.flush();
-                } else if ((black_pices_nr + white_pieces_nr) == (BOARD_SIZE * BOARD_SIZE)
-                        && black_pices_nr > white_pieces_nr) {
-                    player_won = BLACK;
-                    player_black.dataOut.writeInt(BLACK);
-                    player_black.dataOut.flush();
-                } else if ((black_pices_nr + white_pieces_nr) == (BOARD_SIZE * BOARD_SIZE)
-                        && black_pices_nr < white_pieces_nr) {
-                    player_won = WHITE;
-                    player_black.dataOut.writeInt(WHITE);
-                    player_black.dataOut.flush();
-                } else if (player_black.skip_turn && player_white.skip_turn && black_pices_nr > white_pieces_nr) {
-                    player_won = BLACK;
-                    player_black.dataOut.writeInt(BLACK);
-                    player_black.dataOut.flush();
-                } else if (player_black.skip_turn && player_white.skip_turn && black_pices_nr < white_pieces_nr) {
-                    player_won = WHITE;
-                    player_black.dataOut.writeInt(WHITE);
-                    player_black.dataOut.flush();
-                } else {
-                    player_black.dataOut.writeInt(EMPTY);
-                    player_black.dataOut.flush();
+                player_black.dataOut.writeInt(player_won);
+                player_black.dataOut.flush();
 
-                }
             } catch (IOException e) {
                 System.out.println("Cannot connect to player #-1");
             }
-
             try {
-                if (white_pieces_nr == (BOARD_SIZE * BOARD_SIZE) || black_pices_nr == 0 || player_won == WHITE) {
+                player_white.dataOut.writeInt(player_won);
+                player_white.dataOut.flush();
 
-                    player_won = WHITE;
-                    player_white.dataOut.writeInt(WHITE);
-                    player_white.dataOut.flush();
-                } else if (black_pices_nr == (BOARD_SIZE * BOARD_SIZE) || white_pieces_nr == 0 || player_won == BLACK) {
-                    player_won = BLACK;
-                    player_white.dataOut.writeInt(BLACK);
-                    player_white.dataOut.flush();
-                } else if ((black_pices_nr + white_pieces_nr) == (BOARD_SIZE * BOARD_SIZE)
-                        && black_pices_nr > white_pieces_nr) {
-                    player_won = BLACK;
-                    player_white.dataOut.writeInt(BLACK);
-                    player_white.dataOut.flush();
-                } else if ((black_pices_nr + white_pieces_nr) == (BOARD_SIZE * BOARD_SIZE)
-                        && black_pices_nr < white_pieces_nr) {
-                    player_won = WHITE;
-                    player_white.dataOut.writeInt(WHITE);
-                    player_white.dataOut.flush();
-                } else if (player_black.skip_turn && player_white.skip_turn && black_pices_nr > white_pieces_nr) {
-                    player_won = BLACK;
-                    player_white.dataOut.writeInt(BLACK);
-                    player_white.dataOut.flush();
-                } else if (player_black.skip_turn && player_white.skip_turn && black_pices_nr < white_pieces_nr) {
-                    player_won = WHITE;
-                    player_white.dataOut.writeInt(WHITE);
-                    player_white.dataOut.flush();
-                } else {
-                    player_white.dataOut.writeInt(EMPTY);
-                    player_white.dataOut.flush();
-                }
             } catch (IOException e) {
                 System.out.println("Cannot connect to player #1");
             }
@@ -316,7 +279,6 @@ public class Server {
                 }
                 notifyEnemy();
             }
-            sendBoardState();
         }
     }
 
