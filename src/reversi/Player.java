@@ -1,4 +1,4 @@
-package reversi;
+package src.reversi;
 
 import java.io.*;
 import java.net.*;
@@ -8,6 +8,7 @@ public class Player {
     private final int EMPTY = 0;
     private final int WHITE = 1;
     private final int BLACK = -1;
+    private final int DRAW = 2;
     private final int BOARD_SIZE = 8;
     public int player_turn = BLACK;
     public int my_color;
@@ -26,6 +27,38 @@ public class Player {
         board = new int[BOARD_SIZE][BOARD_SIZE];
         possible_moves = new int[BOARD_SIZE][BOARD_SIZE];
         player_won = EMPTY;
+    }
+
+    public int getPlayer_turn() {
+        return player_turn;
+    }
+
+    public void setPlayer_turn(int player_turn) {
+        this.player_turn = player_turn;
+    }
+
+    public int getPlayer_won() {
+        return player_won;
+    }
+
+    public int[] getPoints() {
+        return points;
+    }
+
+    public int[][] getBoard() {
+        return board;
+    }
+
+    public int getMy_color() {
+        return my_color;
+    }
+
+    public int[][] getPossible_moves() {
+        return possible_moves;
+    }
+
+    public boolean isSkip_turn() {
+        return skip_turn;
     }
 
     public void connectToServer(String ip) {
@@ -112,26 +145,6 @@ public class Player {
         }
     }
 
-    public void displayBoard() {
-        System.out.println("BOARD STATE");
-        for (int i = 0; i < BOARD_SIZE; ++i) {
-            for (int j = 0; j < BOARD_SIZE; ++j) {
-                System.out.format("%3d", board[i][j]);
-            }
-            System.out.println();
-        }
-    }
-
-    public void displayValidMoves() {
-        System.out.println("POSSIBLE MOVES");
-        for (int i = 0; i < BOARD_SIZE; ++i) {
-            for (int j = 0; j < BOARD_SIZE; ++j) {
-                System.out.format("%3d", possible_moves[i][j]);
-            }
-            System.out.println();
-        }
-    }
-
     public void move(int x, int y) {
         if (!skip_turn) {
             try {
@@ -142,20 +155,6 @@ public class Player {
             } catch (IOException e) {
                 System.out.println("IOException, cannot send move to server.");
             }
-        }
-    }
-
-    public void debug_move() {
-        if (!skip_turn) {
-            int x;
-            int y;
-            Scanner scan = new Scanner(System.in);
-            do {
-                System.out.println("input 2 cooardinates: ");
-                x = scan.nextInt();
-                y = scan.nextInt();
-            } while (possible_moves[x][y] != 1);
-            move(x, y);
         }
     }
 
@@ -176,7 +175,12 @@ public class Player {
             }
             System.out.println("My turn " + (player_turn == my_color));
         } catch (IOException e) {
+            System.out.println("IOException, cannot connect to server.");
         }
+    }
+
+    private void skipTurn() {
+        player_turn = -my_color;
     }
 
     public void checkForWin() {
@@ -195,36 +199,43 @@ public class Player {
         }
     }
 
+    public boolean isMyTurn() {
+        return my_color == player_turn;
+    }
+
     public static void main(String[] args) {
         Player player = new Player();
-        player.connectToServer("localhost");
-        Window window = new Window(player.my_color, player.player_turn);
+        player.connectToServer("10.1.1.110");
+        Window window = new Window(player.my_color, player.getPlayer_turn());
         player.initBoard();
 
-        while (player.player_won == player.EMPTY) {
-            if (player.my_color == player.player_turn) {
+        while (player.getPlayer_won() == player.EMPTY) {
+            if (player.isMyTurn()) {
                 player.requestBoardState();
-                window.displayBoard(player.board, player.points);
+                window.displayBoard(player.getBoard(), player.getPoints());
                 player.requestValidMoves();
-                if (!player.skip_turn) {
-                    window.displayPossibleMoves(player.possible_moves);
+                if (!player.isSkip_turn()) {
+                    window.displayPossibleMoves(player.getPossible_moves());
                     player.debug_move2(window.getMove());
                     player.checkForWin();
-                    player.requestBoardState();
-                    window.displayBoard(player.board, player.points);
+                    if (player.getPlayer_won() == player.EMPTY) {
+                        player.requestBoardState();
+                        window.displayBoard(player.getBoard(), player.getPoints());
+                    }
                 } else {
                     player.checkForWin();
-                    player.player_turn = -player.my_color;
+                    player.skipTurn();
                 }
             } else {
-                window.displayBoard(player.board, player.points);
+                window.displayBoard(player.getBoard(), player.getPoints());
                 player.waitForTurn();
             }
         }
         player.requestBoardState();
-        window.displayBoard(player.board, player.points);
+        window.displayBoard(player.getBoard(), player.getPoints());
         player.closeConnection();
-        window.displayWinner(player.player_won);
+        window.displayWinner(player.getPlayer_won());
         return;
     }
+
 }
