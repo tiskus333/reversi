@@ -18,7 +18,7 @@ public class Window extends JFrame {
     public static JLabel label_color = new JLabel("YOU ARE ", SwingConstants.CENTER);
 
     private static final int BOARD_SIZE = 8;
-    public Tile[][] buttons = new Tile[BOARD_SIZE][BOARD_SIZE];
+    public JButton[][] buttons = new JButton[BOARD_SIZE][BOARD_SIZE];
     public Image white;
     private JPanel board_panel;
     JPanel score_panel;
@@ -47,18 +47,16 @@ public class Window extends JFrame {
 
     public void init() {
         board_panel = new JPanel(new GridLayout(BOARD_SIZE, BOARD_SIZE));
-        ImageIcon tmp_icon;
-        if (my_color == WHITE)
-            tmp_icon = player_white;
-        else
-            tmp_icon = player_black;
 
         for (int i = 0; i < BOARD_SIZE; ++i)
             for (int j = 0; j < BOARD_SIZE; ++j) {
-                Tile tile = new Tile(tmp_icon);
-                tile.addActionListener(new Action());
-                board_panel.add(tile);
-                buttons[i][j] = tile;
+                JButton button = new JButton();
+                button.setSize(71, 71);
+                button.setBackground(Color.GREEN);
+                button.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+                button.addActionListener(new Action());
+                board_panel.add(button);
+                buttons[i][j] = button;
             }
         score_panel = new JPanel(new GridLayout(1, 3));
         score_panel.setPreferredSize(new Dimension(650, 40));
