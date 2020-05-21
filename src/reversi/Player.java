@@ -2,7 +2,6 @@ package src.reversi;
 
 import java.io.*;
 import java.net.*;
-import java.util.Scanner;
 
 public class Player {
     private final int EMPTY = 0;
@@ -169,11 +168,13 @@ public class Player {
     public void waitForTurn() {
         try {
             player_turn = dataIn.readInt();
-            if (player_turn == 100) {
+            if (player_turn == -my_color * 100) {
                 player_won = -my_color;
                 System.out.println("UPS i lost");
             }
-            System.out.println("My turn " + (player_turn == my_color));
+            if (player_turn == DRAW * 100) {
+                player_won = DRAW;
+            }
         } catch (IOException e) {
             System.out.println("IOException, cannot connect to server.");
         }
