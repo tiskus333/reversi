@@ -24,18 +24,7 @@ public class Server {
     private ServerSocket ss;
     private Socket s;
     private ServerConnection player_black, player_white;
-    /**
-     *    INITIAL BOARD PLACEMENT
-     *       0  1  2  3  4  5  6  7
-     * 0     _  _  _  _  _  _  _  _
-     * 1     _  _  _  _  _  _  _  _
-     * 2     _  _  _  _  _  _  _  _
-     * 3     _  _  _  W  B  _  _  _
-     * 4     _  _  _  B  W  _  _  _
-     * 5     _  _  _  _  _  _  _  _
-     * 6     _  _  _  _  _  _  _  _
-     * 7     _  _  _  _  _  _  _  _
-     */
+
     private int[][] board = new int[BOARD_SIZE][BOARD_SIZE];
     private int[][] possible_moves = new int[BOARD_SIZE][BOARD_SIZE];
 
@@ -207,7 +196,6 @@ public class Server {
                 System.out.println("Cannot connect to player #" + player_id);
                 player_won = -player_id;
             }
-            //add draw condition
             if (white_pieces_nr == (BOARD_SIZE * BOARD_SIZE) || black_pices_nr == 0 || player_won == WHITE) {
                 player_won = WHITE;
             } else if (black_pices_nr == (BOARD_SIZE * BOARD_SIZE) || white_pieces_nr == 0 || player_won == BLACK) {
@@ -250,11 +238,20 @@ public class Server {
         private void endGame() {
             try {
                 if (player_won == BLACK) {
-                    player_white.dataOut.writeInt(100);
+                    player_white.dataOut.writeInt(BLACK * 100);
                     player_white.dataOut.flush();
-                } else {
-                    player_black.dataOut.writeInt(100);
+                } else if (player_won == WHITE) {
+                    player_black.dataOut.writeInt(WHITE * 100);
                     player_black.dataOut.flush();
+                } else {
+                    if (player_id == BLACK) {
+                        player_white.dataOut.writeInt(DRAW * 100);
+                        player_white.dataOut.flush();
+                    }
+                    if (player_id == WHITE) {
+                        player_black.dataOut.writeInt(DRAW * 100);
+                        player_black.dataOut.flush();
+                    }
                 }
             } catch (IOException e) {
             }
@@ -333,6 +330,18 @@ public class Server {
     }
 
     public void initBoard() {
+        /**
+        *    INITIAL BOARD PLACEMENT
+        *       0  1  2  3  4  5  6  7
+        * 0     _  _  _  _  _  _  _  _
+        * 1     _  _  _  _  _  _  _  _
+        * 2     _  _  _  _  _  _  _  _
+        * 3     _  _  _  W  B  _  _  _
+        * 4     _  _  _  B  W  _  _  _
+        * 5     _  _  _  _  _  _  _  _
+        * 6     _  _  _  _  _  _  _  _
+        * 7     _  _  _  _  _  _  _  _
+        */
         for (int i = 0; i < BOARD_SIZE; ++i)
             for (int j = 0; j < BOARD_SIZE; ++j)
                 board[i][j] = EMPTY;
