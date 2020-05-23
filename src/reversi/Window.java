@@ -30,6 +30,7 @@ public class Window extends JFrame {
     private final int DRAW = 2;
     private int[] moves = new int[2];
     private boolean moved = false;
+    private boolean new_game;
 
     public Window(int color, int turn) {
         my_color = color;
@@ -123,7 +124,7 @@ public class Window extends JFrame {
         moved = false;
     }
 
-    public void displayWinner(int winner) {
+    public boolean displayWinner(int winner) {
         String message;
         if (winner == my_color)
             message = "YOU WIN! CONGRATULATIONS!";
@@ -131,8 +132,16 @@ public class Window extends JFrame {
             message = "YOU LOOSE! BETTER LUCK NEXT TIME!";
         else
             message = "IT'S A DRAW!";
-        JOptionPane.showMessageDialog(this, message, "Game Finished!", 1);
-        System.exit(0);
+        int option = JOptionPane.showConfirmDialog(this, "DO YOU WANT TO PLAY AGAIN?", message, 1);
+        if (option == JOptionPane.YES_OPTION)
+            new_game = true;
+        else if (option == JOptionPane.NO_OPTION || option == JOptionPane.CANCEL_OPTION
+                || option == JOptionPane.CLOSED_OPTION)
+            new_game = false;
+        //JOptionPane.showMessageDialog(this, message, "Game Finished!", 1);
+        //System.exit(0);
+        System.out.println("PLAY AGAIN: " + new_game);
+        return new_game;
     }
 
     public int[] getMove() {
