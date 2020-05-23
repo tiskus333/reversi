@@ -4,8 +4,7 @@ mkdir "bin"
 for /D %%G in ("src\*") do (
 mkdir  "bin\%%G"
 cd %%G
-javac -target 8 -source 8 *.java 
-move *.class  "..\..\bin\%%G"
+javac -d ..\..\bin -target 8 -source 8 *.java 
 cd ..\..
 )
 cd bin
