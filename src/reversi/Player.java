@@ -193,10 +193,6 @@ public class Player {
         }
     }
 
-    private void skipTurn() {
-        player_turn = -my_color;
-    }
-
     public boolean checkForWin() {
         System.out.println("Sending request for win conditin.");
         try {
@@ -231,53 +227,6 @@ public class Player {
 
     }
 
-    public void endTurn() {
-        waitForTurn();
-    }
-
-    public static void main(String[] args) {
-        // Player player = new Player();
-        // player.connectToServer("10.1.1.110");
-        // Window window = new Window(player.my_color, player.getPlayer_turn());
-
-        // while (new_game) {
-        //     player.initBoard();
-
-        //     window.displayBoard(player.getBoard(), player.getPoints());
-
-        //     while (player.getPlayer_won() == player.EMPTY) {
-        //         if (player.isMyTurn()) {
-        //             player.requestBoardState();
-        //             window.displayBoard(player.getBoard(), player.getPoints());
-        //             player.requestValidMoves();
-        //             if (!player.isSkip_turn()) {
-        //                 window.displayPossibleMoves(player.getPossible_moves());
-        //                 player.debug_move2(window.getMove());
-        //                 player.checkForWin();
-        //                 if (player.getPlayer_won() == player.EMPTY) {
-        //                     player.requestBoardState();
-        //                     window.displayBoard(player.getBoard(), player.getPoints());
-        //                 }
-        //             } else {
-        //                 player.checkForWin();
-        //                 player.skipTurn();
-        //             }
-        //         } else {
-        //             window.displayBoard(player.getBoard(), player.getPoints());
-        //             player.waitForTurn();
-        //         }
-        //     }
-        //     player.requestBoardState();
-        //     window.displayBoard(player.getBoard(), player.getPoints());
-        //     new_game = window.displayWinner(player.getPlayer_won());
-        //     player.newGame();
-        // }
-        //player.closeConnection();
-        game();
-        System.exit(0);
-        return;
-    }
-
     public static void game() {
         Player player = new Player();
         player.connectToServer("10.1.1.110");
@@ -299,12 +248,8 @@ public class Player {
                     System.out.println("NO WINNER");
                     player.requestBoardState();
                     window.displayBoard(player.getBoard(), player.getPoints());
-                    player.endTurn();
-                    System.out.println("Turn ended");
-                } else {
-                    System.out.println("waiting for my turn");
-                    player.waitForTurn();
                 }
+                player.waitForTurn();
 
             }
             System.out.println("game finished");
@@ -314,6 +259,12 @@ public class Player {
             player.newGame();
         }
         player.closeConnection();
-
     }
+
+    public static void main(String[] args) {
+        game();
+        System.exit(0);
+        return;
+    }
+
 }

@@ -88,12 +88,13 @@ public class Server {
     }
 
     public void runGame() {
-        Thread thread_black = new Thread(player_black);
-        //Thread thread_white = new Thread(player_white);
-
-        thread_black.start();
-        //thread_white.start();
-
+        Thread game = new Thread(player_black);
+        game.start();
+        try {
+            game.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     private class ServerConnection implements Runnable {
@@ -186,31 +187,6 @@ public class Server {
             }
         }
 
-        private void switchPlayers() {
-            player_turn *= -1;
-        }
-
-        private void notifyEnemy() {
-            switchPlayers();
-            System.out.println("player " + (player_color) + " fnished");
-            try {
-                player_black.dataOut.writeInt(player_turn);
-                player_black.dataOut.flush();
-
-            } catch (IOException e) {
-                System.out.println("IOException, cannot notify player #-1");
-                player_won = WHITE;
-            }
-            try {
-                player_white.dataOut.writeInt(player_turn);
-                player_white.dataOut.flush();
-
-            } catch (IOException e) {
-                System.out.println("IOException, cannot notify player #1");
-                player_won = BLACK;
-            }
-        }
-
         private boolean checkForWinner() {
             System.out.println("Waiting for player to send winner to.");
             try {
@@ -245,13 +221,6 @@ public class Server {
             } catch (IOException e) {
                 System.out.println("Cannot connect to player #-1");
             }
-            // try {
-            //     player_white.dataOut.writeInt(player_won);
-            //     player_white.dataOut.flush();
-
-            // } catch (IOException e) {
-            //     System.out.println("Cannot connect to player #1");
-            // }
             if (player_won == BLACK)
                 System.out.println("Player BLACK wins!");
             else if (player_won == WHITE)
@@ -298,28 +267,6 @@ public class Server {
             }
         }
 
-        private void playAgain() {
-            //boolean new_turn[] = new boolean[2];
-            new_game = false;
-            System.out.println("Waiting for new game");
-            try {
-                //new_turn[0] = player_white.dataIn.readBoolean();
-                //new_turn[1] = player_black.dataIn.readBoolean();
-                //new_game = ((new_turn[0] == true) && (new_turn[1] == true));
-                new_game = dataIn.readBoolean();
-                dataOut.writeBoolean(new_game);
-                dataOut.flush();
-                //System.out.println("NEW GAME: " + isNew_game());
-            } catch (IOException e) {
-                System.out.println("PLAYERS DISCONNECTED");
-                e.printStackTrace();
-            }
-        }
-
-        public boolean isNew_game() {
-            return player_white.new_game == true == player_black.new_game;
-        }
-
         public void nextPlayer(int nextPlayer) {
 
             try {
@@ -333,37 +280,11 @@ public class Server {
 
         }
 
-        // @Override
-        // public void run() {
-        //     while (repeat_game) {
-        //         initBoard();
-        //         while (player_won == EMPTY) {
-        //             sendBoardState();
-        //             sendValidMoves();
-        //             if (!skip_turn) {
-        //                 recieveMove();
-        //                 checkForWinner();
-        //                 sendBoardState();
-        //             } else {
-        //                 checkForWinner();
-        //             }
-        //             if (player_won != EMPTY) {
-        //                 endGame();
-        //                 sendBoardState();
-        //                 //break;
-        //             }
-        //             notifyEnemy();
-        //         }
-        //         playAgain();
-        //         repeat_game = repeatGame();
-        //     }
-        // }
         @Override
         public void run() {
             while (repeat_game) {
                 initBoard();
                 while (player_won == EMPTY) {
-                    // player_white.sendBoardState();
                     player_black.sendBoardState();
                     player_black.sendValidMoves();
                     if (!player_black.skip_turn)
@@ -372,7 +293,6 @@ public class Server {
                         break;
                     player_black.sendBoardState();
                     nextPlayer(WHITE);
-                    //notifyEnemy();
                     player_white.sendBoardState();
                     player_white.sendValidMoves();
                     if (!player_white.skip_turn)
@@ -396,6 +316,10 @@ public class Server {
         int tmp_move;
         is_possible_move = false;
         for (int i = 0; i < BOARD_SIZE; ++i)
+            for (int j = 0; j < BOARD_SIZE; ++j)
+                possible_moves[i][j] = 0;
+
+        for (int i = 0; i < BOARD_SIZE; ++i)
             for (int j = 0; j < BOARD_SIZE; ++j) {
                 tmp_move = isValidPosition(i, j, player);
                 if (tmp_move == 1)
@@ -406,6 +330,9 @@ public class Server {
     }
 
     public int isValidPosition(int x, int y, int player) {
+        if (possible_moves[x][y] == 1)
+            return 1;
+
         boolean isValid = false;
 
         if (board[x][y] != EMPTY)
@@ -463,7 +390,7 @@ public class Server {
         player_turn = BLACK;
         player_won = EMPTY;
         //new_game = false;
-        System.out.println("_____NEW GAME______");
+        System.out.println("______NEW GAME______");
         board[3][3] = board[4][4] = WHITE;
         board[3][4] = board[4][3] = BLACK;
         // board[0][0] = board[0][6] = BLACK;
