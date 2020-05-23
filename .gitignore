@@ -2,9 +2,8 @@ Reversi.code-workspace
 .vscode/settings.json
 bin/player.jar
 bin/server.jar
-bin/reversi/Player.class
-bin/reversi/Tile.class
-bin/reversi/Window$Action.class
-bin/reversi/Window.class
-bin/server/Server.class
-bin/server/Server$ServerConnection.class
+bin/src/reversi/Player.class
+bin/src/reversi/Window.class
+bin/src/reversi/Window$Action.class
+bin/src/server/Server.class
+bin/src/server/Server$ServerConnection.class
