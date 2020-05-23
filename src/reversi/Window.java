@@ -23,18 +23,14 @@ public class Window extends JFrame {
     private JPanel board_panel;
     JPanel score_panel;
     private int my_color;
-    private int my_turn;
-    private final int EMPTY = 0;
     private final int WHITE = 1;
     private final int BLACK = -1;
-    private final int DRAW = 2;
     private int[] moves = new int[2];
     private boolean moved = false;
     private boolean new_game;
 
     public Window(int color, int turn) {
         my_color = color;
-        my_turn = turn;
         init();
         setSize(650, 680);
         setPreferredSize(new Dimension(650, 680));
@@ -138,8 +134,6 @@ public class Window extends JFrame {
         else if (option == JOptionPane.NO_OPTION || option == JOptionPane.CANCEL_OPTION
                 || option == JOptionPane.CLOSED_OPTION)
             new_game = false;
-        //JOptionPane.showMessageDialog(this, message, "Game Finished!", 1);
-        //System.exit(0);
         System.out.println("PLAY AGAIN: " + new_game);
         return new_game;
     }
