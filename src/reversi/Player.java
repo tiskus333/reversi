@@ -13,6 +13,7 @@ public class Player {
     public int my_color;
     private int player_won;
     private boolean skip_turn = false;
+    private static boolean new_game = true;
     private int points[];
 
     private int board[][];
@@ -25,6 +26,7 @@ public class Player {
     public Player() {
         board = new int[BOARD_SIZE][BOARD_SIZE];
         possible_moves = new int[BOARD_SIZE][BOARD_SIZE];
+        points = new int[2];
         player_won = EMPTY;
     }
 
@@ -89,15 +91,21 @@ public class Player {
     }
 
     public void initBoard() {
+        System.out.println("_____NEW GAME_____");
         for (int i = 0; i < BOARD_SIZE; ++i)
             for (int j = 0; j < BOARD_SIZE; ++j)
                 board[i][j] = EMPTY;
 
         board[3][3] = board[4][4] = WHITE;
         board[3][4] = board[4][3] = BLACK;
-        points = new int[2];
+        // board[0][0] = board[0][6] = BLACK;
+        // board[0][1] = board[0][7] = WHITE;
+
         points[0] = 2;
         points[1] = 2;
+
+        player_turn = BLACK;
+        player_won = EMPTY;
     }
 
     public void requestBoardState() {
@@ -174,6 +182,11 @@ public class Player {
             }
             if (player_turn == DRAW * 100) {
                 player_won = DRAW;
+                System.out.println("DRAW");
+            }
+            if (player_turn == my_color * 100) {
+                player_won = my_color;
+                System.out.println("Yey, I won");
             }
         } catch (IOException e) {
             System.out.println("IOException, cannot connect to server.");
@@ -184,7 +197,7 @@ public class Player {
         player_turn = -my_color;
     }
 
-    public void checkForWin() {
+    public boolean checkForWin() {
         System.out.println("Sending request for win conditin.");
         try {
             dataOut.writeInt(my_color);
@@ -198,45 +211,109 @@ public class Player {
         } catch (IOException e) {
             System.out.println("Cannot read winner info.");
         }
+        return player_won != EMPTY;
     }
 
     public boolean isMyTurn() {
         return my_color == player_turn;
     }
 
-    public static void main(String[] args) {
-        Player player = new Player();
-        player.connectToServer("10.1.1.110");
-        Window window = new Window(player.my_color, player.getPlayer_turn());
-        player.initBoard();
-
-        while (player.getPlayer_won() == player.EMPTY) {
-            if (player.isMyTurn()) {
-                player.requestBoardState();
-                window.displayBoard(player.getBoard(), player.getPoints());
-                player.requestValidMoves();
-                if (!player.isSkip_turn()) {
-                    window.displayPossibleMoves(player.getPossible_moves());
-                    player.debug_move2(window.getMove());
-                    player.checkForWin();
-                    if (player.getPlayer_won() == player.EMPTY) {
-                        player.requestBoardState();
-                        window.displayBoard(player.getBoard(), player.getPoints());
-                    }
-                } else {
-                    player.checkForWin();
-                    player.skipTurn();
-                }
-            } else {
-                window.displayBoard(player.getBoard(), player.getPoints());
-                player.waitForTurn();
-            }
+    private void newGame() {
+        System.out.println("Checking if we play again");
+        //new_game = false;
+        try {
+            dataOut.writeBoolean(new_game);
+            dataOut.flush();
+            new_game = dataIn.readBoolean();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        player.requestBoardState();
-        window.displayBoard(player.getBoard(), player.getPoints());
-        player.closeConnection();
-        window.displayWinner(player.getPlayer_won());
+
+    }
+
+    public void endTurn() {
+        waitForTurn();
+    }
+
+    public static void main(String[] args) {
+        // Player player = new Player();
+        // player.connectToServer("10.1.1.110");
+        // Window window = new Window(player.my_color, player.getPlayer_turn());
+
+        // while (new_game) {
+        //     player.initBoard();
+
+        //     window.displayBoard(player.getBoard(), player.getPoints());
+
+        //     while (player.getPlayer_won() == player.EMPTY) {
+        //         if (player.isMyTurn()) {
+        //             player.requestBoardState();
+        //             window.displayBoard(player.getBoard(), player.getPoints());
+        //             player.requestValidMoves();
+        //             if (!player.isSkip_turn()) {
+        //                 window.displayPossibleMoves(player.getPossible_moves());
+        //                 player.debug_move2(window.getMove());
+        //                 player.checkForWin();
+        //                 if (player.getPlayer_won() == player.EMPTY) {
+        //                     player.requestBoardState();
+        //                     window.displayBoard(player.getBoard(), player.getPoints());
+        //                 }
+        //             } else {
+        //                 player.checkForWin();
+        //                 player.skipTurn();
+        //             }
+        //         } else {
+        //             window.displayBoard(player.getBoard(), player.getPoints());
+        //             player.waitForTurn();
+        //         }
+        //     }
+        //     player.requestBoardState();
+        //     window.displayBoard(player.getBoard(), player.getPoints());
+        //     new_game = window.displayWinner(player.getPlayer_won());
+        //     player.newGame();
+        // }
+        //player.closeConnection();
+        game();
+        System.exit(0);
         return;
     }
 
+    public static void game() {
+        Player player = new Player();
+        player.connectToServer("10.1.1.110");
+        Window window = new Window(player.my_color, player.getPlayer_turn());
+        while (new_game) {
+            player.initBoard();
+            window.displayBoard(player.getBoard(), player.getPoints());
+            while (player.getPlayer_won() == player.EMPTY) {
+                if (player.isMyTurn()) {
+                    player.requestBoardState();
+                    window.displayBoard(player.getBoard(), player.getPoints());
+                    player.requestValidMoves();
+                    if (!player.skip_turn) {
+                        window.displayPossibleMoves(player.getPossible_moves());
+                        player.debug_move2(window.getMove());
+                    }
+                    if (player.checkForWin())
+                        break;
+                    System.out.println("NO WINNER");
+                    player.requestBoardState();
+                    window.displayBoard(player.getBoard(), player.getPoints());
+                    player.endTurn();
+                    System.out.println("Turn ended");
+                } else {
+                    System.out.println("waiting for my turn");
+                    player.waitForTurn();
+                }
+
+            }
+            System.out.println("game finished");
+            player.requestBoardState();
+            window.displayBoard(player.getBoard(), player.getPoints());
+            new_game = window.displayWinner(player.getPlayer_won());
+            player.newGame();
+        }
+        player.closeConnection();
+
+    }
 }
