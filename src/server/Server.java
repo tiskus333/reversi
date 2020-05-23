@@ -20,6 +20,7 @@ public class Server {
     public int player_won;
     private int player_nr;
     private boolean is_possible_move;
+    private boolean repeat_game = true;
 
     private ServerSocket ss;
     private Socket s;
@@ -67,11 +68,32 @@ public class Server {
         }
     }
 
+    public boolean repeatGame() {
+        return player_white.new_game == true == player_black.new_game;
+    }
+
+    public void newGame() {
+        repeat_game = false;
+        try {
+            player_black.new_game = player_black.dataIn.readBoolean();
+            player_white.new_game = player_white.dataIn.readBoolean();
+            repeat_game = ((player_white.new_game == true) && (true == player_black.new_game));
+            player_black.dataOut.writeBoolean(repeat_game);
+            player_black.dataOut.flush();
+            player_white.dataOut.writeBoolean(repeat_game);
+            player_white.dataOut.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void runGame() {
         Thread thread_black = new Thread(player_black);
-        Thread thread_white = new Thread(player_white);
+        //Thread thread_white = new Thread(player_white);
+
         thread_black.start();
-        thread_white.start();
+        //thread_white.start();
+
     }
 
     private class ServerConnection implements Runnable {
@@ -79,15 +101,16 @@ public class Server {
         private Socket socket;
         private DataInputStream dataIn;
         private DataOutputStream dataOut;
-        private int player_id;
+        private int player_color;
         private boolean skip_turn;
+        private boolean new_game = true;
 
         public ServerConnection(Socket s, int id) {
             socket = s;
             if (id == 1)
-                player_id = BLACK;
+                player_color = BLACK;
             else
-                player_id = WHITE;
+                player_color = WHITE;
             try {
                 dataIn = new DataInputStream(socket.getInputStream());
                 dataOut = new DataOutputStream(socket.getOutputStream());
@@ -103,11 +126,11 @@ public class Server {
             try {
                 dataIn.readInt();
             } catch (IOException e) {
-                System.out.println("Cannot connect to player #" + player_id);
+                System.out.println("Cannot connect to player #" + player_color);
             }
 
             try {
-                System.out.println("Sending board to: " + player_id);
+                System.out.println("Sending board to: " + player_color);
                 dataOut.writeInt(black_pices_nr);
                 dataOut.writeInt(white_pieces_nr);
                 for (int i = 0; i < BOARD_SIZE; ++i)
@@ -116,8 +139,8 @@ public class Server {
                     }
                 dataOut.flush();
             } catch (IOException e) {
-                System.out.println("IOException, cannot send board to client#" + player_id);
-                player_won = -player_id;
+                System.out.println("IOException, cannot send board to client#" + player_color);
+                player_won = -player_color;
             }
         }
 
@@ -126,15 +149,15 @@ public class Server {
             try {
                 dataIn.readInt();
             } catch (IOException e) {
-                System.out.println("Cannot connect to player #" + player_id);
+                System.out.println("Cannot connect to player #" + player_color);
             }
-            getValidPositions(player_id);
+            getValidPositions(player_color);
             skip_turn = !is_possible_move;
             try {
                 dataOut.writeBoolean(skip_turn);
                 dataOut.flush();
                 if (skip_turn) {
-                    System.out.println("Skipping player #" + player_id + " turn");
+                    System.out.println("Skipping player #" + player_color + " turn");
                     return;
                 }
                 System.out.println("Sending moves to: " + player_turn);
@@ -144,8 +167,8 @@ public class Server {
                     }
                 dataOut.flush();
             } catch (IOException e) {
-                System.out.println("IOException, cannot send possible moves to client #" + player_id);
-                player_won = -player_id;
+                System.out.println("IOException, cannot send possible moves to client #" + player_color);
+                player_won = -player_color;
             }
         }
 
@@ -155,11 +178,11 @@ public class Server {
                 x = dataIn.readInt();
                 y = dataIn.readInt();
                 System.out.println("Recieved move " + x + ":" + y);
-                move(x, y, player_id);
+                move(x, y, player_color);
                 displayBoard();
             } catch (IOException e) {
-                System.out.println("Cannot read move from player #" + player_id);
-                player_won = -player_id;
+                System.out.println("Cannot read move from player #" + player_color);
+                player_won = -player_color;
             }
         }
 
@@ -169,7 +192,7 @@ public class Server {
 
         private void notifyEnemy() {
             switchPlayers();
-            System.out.println("player " + (player_id) + " fnished");
+            System.out.println("player " + (player_color) + " fnished");
             try {
                 player_black.dataOut.writeInt(player_turn);
                 player_black.dataOut.flush();
@@ -188,13 +211,13 @@ public class Server {
             }
         }
 
-        private void checkForWinner() {
+        private boolean checkForWinner() {
             System.out.println("Waiting for player to send winner to.");
             try {
                 dataIn.readInt();
             } catch (IOException e) {
-                System.out.println("Cannot connect to player #" + player_id);
-                player_won = -player_id;
+                System.out.println("Cannot connect to player #" + player_color);
+                player_won = -player_color;
             }
             if (white_pieces_nr == (BOARD_SIZE * BOARD_SIZE) || black_pices_nr == 0 || player_won == WHITE) {
                 player_won = WHITE;
@@ -216,39 +239,57 @@ public class Server {
                     player_won = DRAW;
             }
             try {
-                player_black.dataOut.writeInt(player_won);
-                player_black.dataOut.flush();
+                dataOut.writeInt(player_won);
+                dataOut.flush();
 
             } catch (IOException e) {
                 System.out.println("Cannot connect to player #-1");
             }
-            try {
-                player_white.dataOut.writeInt(player_won);
-                player_white.dataOut.flush();
+            // try {
+            //     player_white.dataOut.writeInt(player_won);
+            //     player_white.dataOut.flush();
 
-            } catch (IOException e) {
-                System.out.println("Cannot connect to player #1");
-            }
+            // } catch (IOException e) {
+            //     System.out.println("Cannot connect to player #1");
+            // }
             if (player_won == BLACK)
                 System.out.println("Player BLACK wins!");
             else if (player_won == WHITE)
                 System.out.println("Player WHITE wins!");
+            else if (player_won == DRAW)
+                System.out.println("It's a DRAW!");
+
+            return player_won != EMPTY;
         }
 
         private void endGame() {
+            new_game = false;
             try {
                 if (player_won == BLACK) {
-                    player_white.dataOut.writeInt(BLACK * 100);
-                    player_white.dataOut.flush();
+                    if (player_turn == WHITE) {
+                        player_black.dataOut.writeInt(BLACK * 100);
+                        player_black.dataOut.flush();
+                    }
+                    if (player_turn == BLACK) {
+                        player_white.dataOut.writeInt(BLACK * 100);
+                        player_white.dataOut.flush();
+                    }
+
                 } else if (player_won == WHITE) {
-                    player_black.dataOut.writeInt(WHITE * 100);
-                    player_black.dataOut.flush();
-                } else {
-                    if (player_id == BLACK) {
+                    if (player_turn == BLACK) {
+                        player_white.dataOut.writeInt(WHITE * 100);
+                        player_white.dataOut.flush();
+                    }
+                    if (player_turn == WHITE) {
+                        player_black.dataOut.writeInt(WHITE * 100);
+                        player_black.dataOut.flush();
+                    }
+                } else if (player_won == DRAW) {
+                    if (player_turn == BLACK) {
                         player_white.dataOut.writeInt(DRAW * 100);
                         player_white.dataOut.flush();
                     }
-                    if (player_id == WHITE) {
+                    if (player_turn == WHITE) {
                         player_black.dataOut.writeInt(DRAW * 100);
                         player_black.dataOut.flush();
                     }
@@ -257,26 +298,98 @@ public class Server {
             }
         }
 
-        @Override
-        public void run() {
-            while (player_won == EMPTY) {
-                sendBoardState();
-                sendValidMoves();
-                if (!skip_turn) {
-                    recieveMove();
-                    checkForWinner();
-                    sendBoardState();
-                } else {
-                    checkForWinner();
-                }
-                if (player_won != EMPTY) {
-                    endGame();
-                    sendBoardState();
-                    return;
-                }
-                notifyEnemy();
+        private void playAgain() {
+            //boolean new_turn[] = new boolean[2];
+            new_game = false;
+            System.out.println("Waiting for new game");
+            try {
+                //new_turn[0] = player_white.dataIn.readBoolean();
+                //new_turn[1] = player_black.dataIn.readBoolean();
+                //new_game = ((new_turn[0] == true) && (new_turn[1] == true));
+                new_game = dataIn.readBoolean();
+                dataOut.writeBoolean(new_game);
+                dataOut.flush();
+                //System.out.println("NEW GAME: " + isNew_game());
+            } catch (IOException e) {
+                System.out.println("PLAYERS DISCONNECTED");
+                e.printStackTrace();
             }
         }
+
+        public boolean isNew_game() {
+            return player_white.new_game == true == player_black.new_game;
+        }
+
+        public void nextPlayer(int nextPlayer) {
+
+            try {
+                player_turn = nextPlayer;
+                System.out.println("NOW PLAYING: #" + nextPlayer);
+                player_black.dataOut.writeInt(nextPlayer);
+                player_white.dataOut.writeInt(nextPlayer);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
+
+        // @Override
+        // public void run() {
+        //     while (repeat_game) {
+        //         initBoard();
+        //         while (player_won == EMPTY) {
+        //             sendBoardState();
+        //             sendValidMoves();
+        //             if (!skip_turn) {
+        //                 recieveMove();
+        //                 checkForWinner();
+        //                 sendBoardState();
+        //             } else {
+        //                 checkForWinner();
+        //             }
+        //             if (player_won != EMPTY) {
+        //                 endGame();
+        //                 sendBoardState();
+        //                 //break;
+        //             }
+        //             notifyEnemy();
+        //         }
+        //         playAgain();
+        //         repeat_game = repeatGame();
+        //     }
+        // }
+        @Override
+        public void run() {
+            while (repeat_game) {
+                initBoard();
+                while (player_won == EMPTY) {
+                    // player_white.sendBoardState();
+                    player_black.sendBoardState();
+                    player_black.sendValidMoves();
+                    if (!player_black.skip_turn)
+                        player_black.recieveMove();
+                    if (player_black.checkForWinner())
+                        break;
+                    player_black.sendBoardState();
+                    nextPlayer(WHITE);
+                    //notifyEnemy();
+                    player_white.sendBoardState();
+                    player_white.sendValidMoves();
+                    if (!player_white.skip_turn)
+                        player_white.recieveMove();
+                    if (player_white.checkForWinner())
+                        break;
+                    player_white.sendBoardState();
+                    nextPlayer(BLACK);
+
+                }
+                endGame();
+                player_black.sendBoardState();
+                player_white.sendBoardState();
+                newGame();
+            }
+        }
+
     }
 
     public int[][] getValidPositions(int player) {
@@ -343,11 +456,18 @@ public class Server {
         * 7     _  _  _  _  _  _  _  _
         */
         for (int i = 0; i < BOARD_SIZE; ++i)
-            for (int j = 0; j < BOARD_SIZE; ++j)
+            for (int j = 0; j < BOARD_SIZE; ++j) {
                 board[i][j] = EMPTY;
-
+                possible_moves[i][j] = EMPTY;
+            }
+        player_turn = BLACK;
+        player_won = EMPTY;
+        //new_game = false;
+        System.out.println("_____NEW GAME______");
         board[3][3] = board[4][4] = WHITE;
         board[3][4] = board[4][3] = BLACK;
+        // board[0][0] = board[0][6] = BLACK;
+        // board[0][1] = board[0][7] = WHITE;
         black_pices_nr = 2;
         white_pieces_nr = 2;
     }
