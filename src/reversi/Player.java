@@ -229,7 +229,7 @@ public class Player {
 
     public static void game() {
         Player player = new Player();
-        player.connectToServer("10.1.1.110");
+        player.connectToServer("localhost");
         Window window = new Window(player.my_color, player.getPlayer_turn());
         while (new_game) {
             player.initBoard();
