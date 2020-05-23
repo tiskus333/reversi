@@ -236,6 +236,7 @@ public class Player {
             window.displayBoard(player.getBoard(), player.getPoints());
             while (player.getPlayer_won() == player.EMPTY) {
                 if (player.isMyTurn()) {
+                    System.out.println("New turn");
                     player.requestBoardState();
                     window.displayBoard(player.getBoard(), player.getPoints());
                     player.requestValidMoves();
