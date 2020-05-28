@@ -68,25 +68,6 @@ public class Server {
         }
     }
 
-    public boolean repeatGame() {
-        return player_white.new_game == true == player_black.new_game;
-    }
-
-    public void newGame() {
-        repeat_game = false;
-        try {
-            player_black.new_game = player_black.dataIn.readBoolean();
-            player_white.new_game = player_white.dataIn.readBoolean();
-            repeat_game = ((player_white.new_game == true) && (true == player_black.new_game));
-            player_black.dataOut.writeBoolean(repeat_game);
-            player_black.dataOut.flush();
-            player_white.dataOut.writeBoolean(repeat_game);
-            player_white.dataOut.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     public void runGame() {
         Thread game = new Thread(player_black);
         game.start();
@@ -277,7 +258,25 @@ public class Server {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
 
+        public void newGame() {
+            repeat_game = false;
+            try {
+                player_black.new_game = player_black.dataIn.readBoolean();
+                player_white.new_game = player_white.dataIn.readBoolean();
+                repeat_game = ((player_white.new_game == true) && (true == player_black.new_game));
+                if (player_black.new_game) {
+                    player_black.dataOut.writeBoolean(repeat_game);
+                    player_black.dataOut.flush();
+                }
+                if (player_white.new_game) {
+                    player_white.dataOut.writeBoolean(repeat_game);
+                    player_white.dataOut.flush();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
         @Override
@@ -308,6 +307,7 @@ public class Server {
                 player_white.sendBoardState();
                 newGame();
             }
+            System.out.println("Game session ended");
         }
 
     }
@@ -389,12 +389,11 @@ public class Server {
             }
         player_turn = BLACK;
         player_won = EMPTY;
-        //new_game = false;
         System.out.println("______NEW GAME______");
-        board[3][3] = board[4][4] = WHITE;
-        board[3][4] = board[4][3] = BLACK;
-        // board[0][0] = board[0][6] = BLACK;
-        // board[0][1] = board[0][7] = WHITE;
+        // board[3][3] = board[4][4] = WHITE;
+        // board[3][4] = board[4][3] = BLACK;
+        board[0][0] = board[0][6] = BLACK;
+        board[0][1] = board[0][7] = WHITE;
         black_pices_nr = 2;
         white_pieces_nr = 2;
     }
@@ -466,7 +465,6 @@ public class Server {
 
     public static void main(String[] args) {
         Server server = new Server();
-        server.initBoard();
         server.acceptConnections();
         server.runGame();
         server.closeConnection();
