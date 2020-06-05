@@ -8,16 +8,16 @@ import java.net.*;
  */
 public class Server {
 
-    public final int EMPTY = 0;
-    public final int WHITE = 1;
-    public final int BLACK = -1;
+    private final int EMPTY = 0;
+    private final int WHITE = 1;
+    private final int BLACK = -1;
     private final int DRAW = 2;
-    public final int BOARD_SIZE = 8;
+    private final int BOARD_SIZE = 8;
 
-    public int player_turn = BLACK;
-    public int white_pieces_nr;
-    public int black_pices_nr;
-    public int player_won;
+    private int player_turn = BLACK;
+    private int white_pieces_nr;
+    private int black_pices_nr;
+    private int player_won;
     private int player_nr;
     private boolean is_possible_move;
     private boolean repeat_game = true;
@@ -29,6 +29,9 @@ public class Server {
     private int[][] board = new int[BOARD_SIZE][BOARD_SIZE];
     private int[][] possible_moves = new int[BOARD_SIZE][BOARD_SIZE];
 
+    /**
+     * Create ServerSocket
+     */
     public Server() {
         System.out.println("Started game server.");
         player_nr = 0;
@@ -40,6 +43,9 @@ public class Server {
         }
     }
 
+    /**
+     * Accept connections from players and assign colors
+     */
     public void acceptConnections() {
         try {
             System.out.println("Waiting for players to join.");
@@ -60,6 +66,9 @@ public class Server {
         }
     }
 
+    /**
+     * Close ServerSocket
+     */
     public void closeConnection() {
         try {
             ss.close();
@@ -68,6 +77,9 @@ public class Server {
         }
     }
 
+    /**
+     * Create new thread to run the game
+     */
     public void runGame() {
         Thread game = new Thread(player_black);
         game.start();
@@ -87,6 +99,11 @@ public class Server {
         private boolean skip_turn;
         private boolean new_game = true;
 
+        /**
+         * Assign player to color and socket
+         * @param s
+         * @param id
+         */
         public ServerConnection(Socket s, int id) {
             socket = s;
             if (id == 1)
@@ -103,6 +120,9 @@ public class Server {
             }
         }
 
+        /**
+         * Send board to player
+         */
         private void sendBoardState() {
             System.out.println("Waiting for player to send board state to.");
             try {
@@ -126,6 +146,9 @@ public class Server {
             }
         }
 
+        /**
+         * Send possible moves to player
+         */
         private void sendValidMoves() {
             System.out.println("Waiting for player to send possible moves to.");
             try {
@@ -154,6 +177,9 @@ public class Server {
             }
         }
 
+        /**
+         * Recieve performed move
+         */
         private void recieveMove() {
             try {
                 int x = -1, y = -1;
@@ -168,6 +194,11 @@ public class Server {
             }
         }
 
+        /**
+         * Check if player has won
+         * @return true if won
+         * @return false if there is no winner
+         */
         private boolean checkForWinner() {
             System.out.println("Waiting for player to send winner to.");
             try {
@@ -212,6 +243,9 @@ public class Server {
             return player_won != EMPTY;
         }
 
+        /**
+         * Force player to end game by sending special value
+         */
         private void endGame() {
             new_game = false;
             try {
@@ -248,6 +282,10 @@ public class Server {
             }
         }
 
+        /**
+         * Inform nextPlayer that it's his turn
+         * @param nextPlayer
+         */
         public void nextPlayer(int nextPlayer) {
 
             try {
@@ -260,6 +298,9 @@ public class Server {
             }
         }
 
+        /**
+         * Check if both players want to play again
+         */
         public void newGame() {
             repeat_game = false;
             try {
@@ -279,6 +320,9 @@ public class Server {
             }
         }
 
+        /**
+         * Main game loop 
+         */
         @Override
         public void run() {
             while (repeat_game) {
@@ -300,7 +344,6 @@ public class Server {
                         break;
                     player_white.sendBoardState();
                     nextPlayer(BLACK);
-
                 }
                 endGame();
                 player_black.sendBoardState();
@@ -312,6 +355,11 @@ public class Server {
 
     }
 
+    /**
+     * Calculate possible moves for player
+     * @param player
+     * @return
+     */
     public int[][] getValidPositions(int player) {
         int tmp_move;
         is_possible_move = false;
@@ -329,6 +377,13 @@ public class Server {
         return possible_moves;
     }
 
+    /**
+     * Check if given position (x,y) can be a valid move for player
+     * @param x
+     * @param y
+     * @param player
+     * @return
+     */
     public int isValidPosition(int x, int y, int player) {
         if (possible_moves[x][y] == 1)
             return 1;
@@ -357,6 +412,16 @@ public class Server {
             return 0;
     }
 
+    /**
+     * Recursive check for valid position
+     * @param x
+     * @param y
+     * @param dx
+     * @param dy
+     * @param player
+     * @param possible
+     * @return
+     */
     public boolean checkPosition(int x, int y, int dx, int dy, int player, boolean possible) {
         if (x >= BOARD_SIZE || x < 0 || y >= BOARD_SIZE || y < 0)
             return false;
@@ -369,6 +434,9 @@ public class Server {
         return checkPosition(x + dx, y + dy, dx, dy, player, possible);
     }
 
+    /**
+     * Initialize board state
+     */
     public void initBoard() {
         /**
         *    INITIAL BOARD PLACEMENT
@@ -398,6 +466,12 @@ public class Server {
         white_pieces_nr = 2;
     }
 
+    /**
+     * Apply move to position (x,y) from player
+     * @param x
+     * @param y
+     * @param player
+     */
     public void move(int x, int y, int player) {
         if (x < 0 || x > BOARD_SIZE || y < 0 || y > BOARD_SIZE)
             return;
@@ -412,6 +486,12 @@ public class Server {
             System.out.println("INCORECT PLACEMENT!!!");
     }
 
+    /**
+     * Start recursively updating board in all 8 directions
+     * @param x
+     * @param y
+     * @param player
+     */
     public void updateBoard(int x, int y, int player) {
         update(x + 1, y, 1, 0, player); // ee
         update(x - 1, y, -1, 0, player); // ww
@@ -423,6 +503,15 @@ public class Server {
         update(x - 1, y - 1, -1, -1, player); // wn
     }
 
+    /**
+     * Recursively update board state and adjust score
+     * @param x
+     * @param y
+     * @param dx
+     * @param dy
+     * @param player
+     * @return
+     */
     public boolean update(int x, int y, int dx, int dy, int player) {
         if (x >= BOARD_SIZE || x < 0 || y >= BOARD_SIZE || y < 0)
             return false;
@@ -439,6 +528,9 @@ public class Server {
         return false;
     }
 
+    /**
+     * Print board state to console
+     */
     public void displayBoard() {
         System.out.println("black: " + black_pices_nr + " white: " + white_pieces_nr);
         for (int i = 0; i < BOARD_SIZE; ++i) {
@@ -449,6 +541,10 @@ public class Server {
         }
     }
 
+    /**
+     * print possible moves for player to console
+     * @param player
+     */
     public void displayPossiblePositions(int player) {
         System.out.print("VALID POSITIONS FOR ");
         if (player == WHITE)

@@ -11,7 +11,7 @@ public class Player {
     private final int BOARD_SIZE = 8;
     public int player_turn = BLACK;
     public int my_color;
-    private int player_won;
+    private int player_won = EMPTY;;
     private boolean skip_turn = false;
     private static boolean new_game = true;
     private int points[];
@@ -23,11 +23,13 @@ public class Player {
     private DataInputStream dataIn;
     private DataOutputStream dataOut;
 
+    /**
+     * Create tables for storing game data
+     */
     public Player() {
         board = new int[BOARD_SIZE][BOARD_SIZE];
         possible_moves = new int[BOARD_SIZE][BOARD_SIZE];
         points = new int[2];
-        player_won = EMPTY;
     }
 
     public int getPlayer_turn() {
@@ -62,6 +64,10 @@ public class Player {
         return skip_turn;
     }
 
+    /**
+     * Connect to the server at given ip
+     * @param ip
+     */
     public void connectToServer(String ip) {
         int tmp_id;
         System.out.println("Connecting to server at localhost:60065");
@@ -82,6 +88,9 @@ public class Player {
         }
     }
 
+    /**
+     * Close socket
+     */
     public void closeConnection() {
         try {
             socket.close();
@@ -90,6 +99,9 @@ public class Player {
         }
     }
 
+    /**
+     * Initialize Board state
+     */
     public void initBoard() {
         System.out.println("_____NEW GAME_____");
         for (int i = 0; i < BOARD_SIZE; ++i)
@@ -108,6 +120,9 @@ public class Player {
         player_won = EMPTY;
     }
 
+    /**
+     * Request board from server, reads current positions and points
+     */
     public void requestBoardState() {
         System.out.println("Sending request for board state.");
         try {
@@ -130,6 +145,9 @@ public class Player {
         }
     }
 
+    /**
+     * Request possible moves for player, set skip_turn if no moves are possible
+     */
     public void requestValidMoves() {
         System.out.println("Sending request for possible moves.");
         try {
@@ -152,6 +170,11 @@ public class Player {
         }
     }
 
+    /**
+     * Send move (x,y) to server
+     * @param x
+     * @param y
+     */
     public void move(int x, int y) {
         if (!skip_turn) {
             try {
@@ -173,6 +196,9 @@ public class Player {
         }
     }
 
+    /**
+     * Wait for my turn signal from server, end game if recieved special values
+     */
     public void waitForTurn() {
         try {
             player_turn = dataIn.readInt();
@@ -193,6 +219,10 @@ public class Player {
         }
     }
 
+    /**
+     * Request winner information from server
+     * @return
+     */
     public boolean checkForWin() {
         System.out.println("Sending request for win conditin.");
         try {
@@ -214,6 +244,9 @@ public class Player {
         return my_color == player_turn;
     }
 
+    /**
+     * Send information about wanting to play again
+     */
     private void newGame() {
         System.out.println("Checking if we play again");
         try {
@@ -227,6 +260,9 @@ public class Player {
 
     }
 
+    /**
+     * main game loop
+     */
     public static void game() {
         Player player = new Player();
         player.connectToServer("localhost");
