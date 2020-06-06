@@ -128,7 +128,8 @@ public class Window extends JFrame {
             message = "YOU LOOSE! BETTER LUCK NEXT TIME!";
         else
             message = "IT'S A DRAW!";
-        int option = JOptionPane.showConfirmDialog(this, "DO YOU WANT TO PLAY AGAIN?", message, 1);
+        int option = JOptionPane.showConfirmDialog(this, "DO YOU WANT TO PLAY AGAIN?", message,
+                JOptionPane.YES_NO_OPTION);
         if (option == JOptionPane.YES_OPTION)
             new_game = true;
         else if (option == JOptionPane.NO_OPTION || option == JOptionPane.CANCEL_OPTION
