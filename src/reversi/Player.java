@@ -108,10 +108,10 @@ public class Player {
             for (int j = 0; j < BOARD_SIZE; ++j)
                 board[i][j] = EMPTY;
 
-        // board[3][3] = board[4][4] = WHITE;
-        // board[3][4] = board[4][3] = BLACK;
-        board[0][0] = board[0][6] = BLACK;
-        board[0][1] = board[0][7] = WHITE;
+        board[3][3] = board[4][4] = WHITE;
+        board[3][4] = board[4][3] = BLACK;
+        // board[0][0] = board[0][6] = BLACK;
+        // board[0][1] = board[0][7] = WHITE;
 
         points[0] = 2;
         points[1] = 2;

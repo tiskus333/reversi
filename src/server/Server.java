@@ -458,10 +458,10 @@ public class Server {
         player_turn = BLACK;
         player_won = EMPTY;
         System.out.println("______NEW GAME______");
-        // board[3][3] = board[4][4] = WHITE;
-        // board[3][4] = board[4][3] = BLACK;
-        board[0][0] = board[0][6] = BLACK;
-        board[0][1] = board[0][7] = WHITE;
+        board[3][3] = board[4][4] = WHITE;
+        board[3][4] = board[4][3] = BLACK;
+        // board[0][0] = board[0][6] = BLACK;
+        // board[0][1] = board[0][7] = WHITE;
         black_pices_nr = 2;
         white_pieces_nr = 2;
     }
