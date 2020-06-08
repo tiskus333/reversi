@@ -84,7 +84,8 @@ public class Player {
                 System.out.println("Connected to the server as player WHITE.");
             }
         } catch (IOException e) {
-            System.out.println("IOException from ConnectToServer.");
+            System.out.println("Cannot connect to server, maybe not running");
+            System.exit(0);
         }
     }
 
@@ -110,9 +111,6 @@ public class Player {
 
         board[3][3] = board[4][4] = WHITE;
         board[3][4] = board[4][3] = BLACK;
-        // board[0][0] = board[0][6] = BLACK;
-        // board[0][1] = board[0][7] = WHITE;
-
         points[0] = 2;
         points[1] = 2;
 
@@ -141,7 +139,7 @@ public class Player {
                     board[i][j] = dataIn.readInt();
                 }
         } catch (IOException e) {
-            System.out.println("IOException cannot read board state from server.");
+            System.out.println("Cannot read board state from server.");
         }
     }
 
@@ -165,7 +163,7 @@ public class Player {
                         possible_moves[i][j] = dataIn.readInt();
                     }
             } catch (IOException e) {
-                System.out.println("IOException cannot read possible moves from server.");
+                System.out.println("Cannot read possible moves from server.");
             }
         }
     }
@@ -183,7 +181,7 @@ public class Player {
                 dataOut.flush();
                 player_turn *= -1;
             } catch (IOException e) {
-                System.out.println("IOException, cannot send move to server.");
+                System.out.println("Cannot send move to server.");
             }
         }
     }
@@ -215,7 +213,8 @@ public class Player {
                 System.out.println("Yey, I won");
             }
         } catch (IOException e) {
-            System.out.println("IOException, cannot connect to server.");
+            System.out.println("Cannot connect to server.");
+            System.exit(0);
         }
     }
 
@@ -255,7 +254,7 @@ public class Player {
             if (new_game)
                 new_game = dataIn.readBoolean();
         } catch (IOException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
 
     }
@@ -287,7 +286,6 @@ public class Player {
                     window.displayBoard(player.getBoard(), player.getPoints());
                 }
                 player.waitForTurn();
-
             }
             System.out.println("game finished");
             player.requestBoardState();
