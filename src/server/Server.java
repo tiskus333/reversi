@@ -220,16 +220,16 @@ public class Server {
             } else if ((black_pices_nr + white_pieces_nr) == (BOARD_SIZE * BOARD_SIZE)) {
                 if (black_pices_nr < white_pieces_nr)
                     player_won = WHITE;
-                if (black_pices_nr > white_pieces_nr)
+                else if (black_pices_nr > white_pieces_nr)
                     player_won = BLACK;
-                if (black_pices_nr == white_pieces_nr)
+                else if (black_pices_nr == white_pieces_nr)
                     player_won = DRAW;
             } else if (player_black.skip_turn && player_white.skip_turn) {
                 if (black_pices_nr < white_pieces_nr)
                     player_won = WHITE;
-                if (black_pices_nr > white_pieces_nr)
+                else if (black_pices_nr > white_pieces_nr)
                     player_won = BLACK;
-                if (black_pices_nr == white_pieces_nr)
+                else if (black_pices_nr == white_pieces_nr)
                     player_won = DRAW;
             }
             try {
@@ -347,9 +347,9 @@ public class Server {
     public int[][] getValidPositions(int player) {
         int tmp_move;
         is_possible_move = false;
-        for (int i = 0; i < BOARD_SIZE; ++i)
-            for (int j = 0; j < BOARD_SIZE; ++j)
-                possible_moves[i][j] = 0;
+        // for (int i = 0; i < BOARD_SIZE; ++i)
+        //     for (int j = 0; j < BOARD_SIZE; ++j)
+        //         possible_moves[i][j] = 0;
 
         for (int i = 0; i < BOARD_SIZE; ++i)
             for (int j = 0; j < BOARD_SIZE; ++j) {
@@ -370,8 +370,8 @@ public class Server {
      *         false if move cannot be made
      */
     public boolean isValidPosition(int x, int y, int player) {
-        if (possible_moves[x][y] == 1)
-            return true;
+        // if (possible_moves[x][y] == 1)
+        //     return true;
 
         boolean isValid = false;
 
@@ -420,6 +420,7 @@ public class Server {
      * Initialize board state
      */
     public void initBoard() {
+        System.out.println("______NEW GAME______");
         /**
         *    INITIAL BOARD PLACEMENT
         *       0  1  2  3  4  5  6  7
@@ -439,7 +440,6 @@ public class Server {
             }
         player_turn = BLACK;
         player_won = EMPTY;
-        System.out.println("______NEW GAME______");
         board[3][3] = board[4][4] = WHITE;
         board[3][4] = board[4][3] = BLACK;
         black_pices_nr = 2;
