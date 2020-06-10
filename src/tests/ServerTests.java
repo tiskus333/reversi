@@ -1,9 +1,6 @@
 package src.tests;
 
 import src.server.Server;
-import src.reversi.*;
-
-import java.util.Arrays;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -176,7 +173,7 @@ public class ServerTests {
                 int[][] win_board_white_full = new int[BOARD_SIZE][BOARD_SIZE];
                 for (int[] is : win_board_white_full) {
                         for (int is2 : is) {
-                                is2 = 1;
+                                is2 = WHITE;
                         }
                 }
                 server.setBoard(win_board_white_full);
@@ -201,7 +198,7 @@ public class ServerTests {
                 int[][] win_board_black_full = new int[BOARD_SIZE][BOARD_SIZE];
                 for (int[] is : win_board_black_full) {
                         for (int is2 : is) {
-                                is2 = -1;
+                                is2 = BLACK;
                         }
                 }
                 
