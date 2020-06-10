@@ -1,7 +1,5 @@
 Reversi.code-workspace
 .vscode/settings.json
-bin/player.jar
-bin/server.jar
 bin/src/reversi/Player.class
 bin/src/reversi/Window.class
 bin/src/reversi/Window$Action.class
