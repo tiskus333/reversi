@@ -17,6 +17,8 @@ public class Server {
     private int player_turn = BLACK;
     private int white_pieces_nr;
     private int black_pices_nr;
+    private boolean player_black_skip_turn;
+    private boolean player_white_skip_turn;
     private int player_won;
     private int player_nr;
     private boolean is_possible_move;
@@ -96,7 +98,6 @@ public class Server {
         private DataInputStream dataIn;
         private DataOutputStream dataOut;
         private int player_color;
-        private boolean skip_turn;
         private boolean new_game = true;
 
         /**
@@ -163,7 +164,11 @@ public class Server {
                 return;
             }
             getValidPositions(player_color);
-            skip_turn = !is_possible_move;
+            boolean skip_turn = !is_possible_move;
+            if (player_color == WHITE)
+                player_white_skip_turn = skip_turn;
+            if (player_color == BLACK)
+                player_black_skip_turn = skip_turn;
             try {
                 dataOut.writeBoolean(skip_turn);
                 dataOut.flush();
@@ -201,7 +206,7 @@ public class Server {
         }
 
         /**
-         * Check if player has won
+         * Check if any player has won and send info to player
          * @return true if won
          * @return false if there is no winner
          */
@@ -213,25 +218,7 @@ public class Server {
                 System.out.println("Cannot connect to player #" + player_color);
                 player_won = -player_color;
             }
-            if (white_pieces_nr == (BOARD_SIZE * BOARD_SIZE) || black_pices_nr == 0 || player_won == WHITE) {
-                player_won = WHITE;
-            } else if (black_pices_nr == (BOARD_SIZE * BOARD_SIZE) || white_pieces_nr == 0 || player_won == BLACK) {
-                player_won = BLACK;
-            } else if ((black_pices_nr + white_pieces_nr) == (BOARD_SIZE * BOARD_SIZE)) {
-                if (black_pices_nr < white_pieces_nr)
-                    player_won = WHITE;
-                else if (black_pices_nr > white_pieces_nr)
-                    player_won = BLACK;
-                else if (black_pices_nr == white_pieces_nr)
-                    player_won = DRAW;
-            } else if (player_black.skip_turn && player_white.skip_turn) {
-                if (black_pices_nr < white_pieces_nr)
-                    player_won = WHITE;
-                else if (black_pices_nr > white_pieces_nr)
-                    player_won = BLACK;
-                else if (black_pices_nr == white_pieces_nr)
-                    player_won = DRAW;
-            }
+            checkWinner();
             try {
                 dataOut.writeInt(player_won);
                 dataOut.flush();
@@ -315,7 +302,7 @@ public class Server {
                 while (player_won == EMPTY) {
                     player_black.sendBoardState();
                     player_black.sendValidMoves();
-                    if (!player_black.skip_turn)
+                    if (!player_black_skip_turn)
                         player_black.recieveMove();
                     if (player_black.checkForWinner())
                         break;
@@ -323,7 +310,7 @@ public class Server {
                     nextPlayer(WHITE);
                     player_white.sendBoardState();
                     player_white.sendValidMoves();
-                    if (!player_white.skip_turn)
+                    if (!player_white_skip_turn)
                         player_white.recieveMove();
                     if (player_white.checkForWinner())
                         break;
@@ -337,6 +324,33 @@ public class Server {
             }
             System.out.println("Game session ended");
         }
+    }
+
+    /**
+    * Check if player won 
+    * @return winner or EMPTY
+    */
+    public int checkWinner() {
+        if (white_pieces_nr == (BOARD_SIZE * BOARD_SIZE) || black_pices_nr == 0 || player_won == WHITE) {
+            player_won = WHITE;
+        } else if (black_pices_nr == (BOARD_SIZE * BOARD_SIZE) || white_pieces_nr == 0 || player_won == BLACK) {
+            player_won = BLACK;
+        } else if ((black_pices_nr + white_pieces_nr) == (BOARD_SIZE * BOARD_SIZE)) {
+            if (black_pices_nr < white_pieces_nr)
+                player_won = WHITE;
+            else if (black_pices_nr > white_pieces_nr)
+                player_won = BLACK;
+            else if (black_pices_nr == white_pieces_nr)
+                player_won = DRAW;
+        } else if (player_black_skip_turn && player_white_skip_turn) {
+            if (black_pices_nr < white_pieces_nr)
+                player_won = WHITE;
+            else if (black_pices_nr > white_pieces_nr)
+                player_won = BLACK;
+            else if (black_pices_nr == white_pieces_nr)
+                player_won = DRAW;
+        }
+        return player_won;
     }
 
     /**
@@ -537,6 +551,26 @@ public class Server {
             }
             System.out.println();
         }
+    }
+
+    public int[][] getBoard() {
+        return board;
+    }
+
+    /**
+     * Sets board state and updates pieces count
+     * @param board
+     */
+    public void setBoard(int[][] board) {
+        this.board = board;
+        white_pieces_nr = black_pices_nr = 0;
+        for (int i = 0; i < BOARD_SIZE; ++i)
+            for (int j = 0; j < BOARD_SIZE; ++j) {
+                if (board[i][j] == 1)
+                    ++white_pieces_nr;
+                if (board[i][j] == -1)
+                    ++black_pices_nr;
+            }
     }
 
     public static void main(String[] args) {
