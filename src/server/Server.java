@@ -75,7 +75,7 @@ public class Server {
         try {
             ss.close();
         } catch (IOException e) {
-            //e.printStackTrace();
+            System.out.println("Cannot close ServerSocket");
         }
     }
 
@@ -88,7 +88,7 @@ public class Server {
         try {
             game.join();
         } catch (InterruptedException e) {
-            //e.printStackTrace();
+            System.out.println("Cannot join game thread");
         }
     }
 
@@ -145,7 +145,6 @@ public class Server {
                 dataOut.flush();
             } catch (IOException e) {
                 System.out.println("IOException, cannot send board to client#" + player_color);
-                player_won = -player_color;
                 player_won = -player_color;
                 return;
             }
@@ -248,6 +247,7 @@ public class Server {
                     player_white.dataOut.flush();
                 }
             } catch (IOException e) {
+                System.out.println("Player disconnected");
             }
         }
 
@@ -263,7 +263,7 @@ public class Server {
                 player_black.dataOut.writeInt(nextPlayer);
                 player_white.dataOut.writeInt(nextPlayer);
             } catch (IOException e) {
-                //e.printStackTrace();
+                System.out.println("Player disconnected");
             }
         }
 
@@ -382,9 +382,6 @@ public class Server {
      *         false if move cannot be made
      */
     public boolean isValidPosition(int x, int y, int player) {
-        // if (possible_moves[x][y] == 1)
-        //     return true;
-
         boolean isValid = false;
 
         if (board[x][y] != EMPTY)
