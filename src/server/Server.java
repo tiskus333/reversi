@@ -19,7 +19,7 @@ public class Server {
     private int black_pices_nr;
     private boolean player_black_skip_turn;
     private boolean player_white_skip_turn;
-    private int player_won;
+    public int player_won;
     private int player_nr;
     private boolean is_possible_move;
     private boolean repeat_game = true;
@@ -165,10 +165,7 @@ public class Server {
             }
             getValidPositions(player_color);
             boolean skip_turn = !is_possible_move;
-            if (player_color == WHITE)
-                player_white_skip_turn = skip_turn;
-            if (player_color == BLACK)
-                player_black_skip_turn = skip_turn;
+
             try {
                 dataOut.writeBoolean(skip_turn);
                 dataOut.flush();
@@ -210,7 +207,7 @@ public class Server {
          * @return true if won
          * @return false if there is no winner
          */
-        private boolean checkForWinner() {
+        private boolean sendWinner() {
             System.out.println("Waiting for player to send winner to.");
             try {
                 dataIn.readInt();
@@ -304,7 +301,7 @@ public class Server {
                     player_black.sendValidMoves();
                     if (!player_black_skip_turn)
                         player_black.recieveMove();
-                    if (player_black.checkForWinner())
+                    if (player_black.sendWinner())
                         break;
                     player_black.sendBoardState();
                     nextPlayer(WHITE);
@@ -312,7 +309,7 @@ public class Server {
                     player_white.sendValidMoves();
                     if (!player_white_skip_turn)
                         player_white.recieveMove();
-                    if (player_white.checkForWinner())
+                    if (player_white.sendWinner())
                         break;
                     player_white.sendBoardState();
                     nextPlayer(BLACK);
@@ -361,9 +358,6 @@ public class Server {
     public int[][] getValidPositions(int player) {
         int tmp_move;
         is_possible_move = false;
-        // for (int i = 0; i < BOARD_SIZE; ++i)
-        //     for (int j = 0; j < BOARD_SIZE; ++j)
-        //         possible_moves[i][j] = 0;
 
         for (int i = 0; i < BOARD_SIZE; ++i)
             for (int j = 0; j < BOARD_SIZE; ++j) {
@@ -372,6 +366,10 @@ public class Server {
                     is_possible_move = true;
                 possible_moves[i][j] = tmp_move;
             }
+        if (player == WHITE)
+            player_white_skip_turn = !is_possible_move;
+        if (player == BLACK)
+            player_black_skip_turn = !is_possible_move;
         return possible_moves;
     }
 
