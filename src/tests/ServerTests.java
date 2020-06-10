@@ -18,8 +18,8 @@ public class ServerTests {
         @Before
         public void setup() {
                 server = new Server();
-                Assert.assertNotNull(server);
                 server.initBoard();
+                Assert.assertNotNull(server);
         }
 
         @After
@@ -118,8 +118,8 @@ public class ServerTests {
                 { 0, 0, 0, 0, 0, 0, 0, 0 } };
         board = server.getBoard();
         Assert.assertArrayEquals(expected_board_white, board);
+server.initBoard();
 
-        server.initBoard();
         server.getValidPositions(BLACK);
         server.move(3, 2, BLACK);
         expected_board_black = new int[][] { 
@@ -149,8 +149,8 @@ public class ServerTests {
                         { 1, 1, 1, 1,-1,-1,-1,-1 }, 
                         { 1, 1, 1, 1,-1,-1,-1,-1 }, 
                         { 1, 1, 1, 1,-1,-1,-1,-1 } };
-                server.setBoard(draw_board_full);
                 server.initBoard();
+                server.setBoard(draw_board_full);
                 player_won =  server.checkWinner();
                 Assert.assertEquals(DRAW, player_won);
 
@@ -163,8 +163,8 @@ public class ServerTests {
                         { 0, 0, 0, 0, 0, 0, 0, 0 }, 
                         { 0, 0, 0, 0, 0, 0, 1, 1 }, 
                         { 0, 0, 0, 0, 0, 0, 1, 1 } };
-                server.setBoard(draw_board_partial);
                 server.initBoard();
+                server.setBoard(draw_board_partial);
                 server.getValidPositions(WHITE);
                 server.getValidPositions(BLACK);
                 player_won =  server.checkWinner();
@@ -176,8 +176,8 @@ public class ServerTests {
                                 is2 = WHITE;
                         }
                 }
-                server.setBoard(win_board_white_full);
                 server.initBoard();
+                server.setBoard(win_board_white_full);
                 player_won =  server.checkWinner();
                 Assert.assertEquals(WHITE, player_won);
 
@@ -190,8 +190,8 @@ public class ServerTests {
                         { 0, 0, 0, 0, 0, 0, 0, 0 }, 
                         { 0, 0, 0, 0, 0, 0, 0, 0 }, 
                         { 0, 0, 0, 0, 0, 0, 0, 0 } };
-                server.setBoard(win_board_white_partial);
                 server.initBoard();
+                server.setBoard(win_board_white_partial);
                 player_won =  server.checkWinner();
                 Assert.assertEquals(WHITE, player_won);
                         
@@ -211,8 +211,8 @@ public class ServerTests {
                         { 0, 0, 0, 0, 0, 0, 0, 0 }, 
                         { 0, 0, 0, 0, 0, 0, 0, 0 }, 
                         { 0, 0, 0, 0, 0, 0, 0, 0 } };
-                server.setBoard(win_board_black_partial);
                 server.initBoard();
+                server.setBoard(win_board_black_partial);
                 player_won =  server.checkWinner();
                 Assert.assertEquals(BLACK, player_won);
 
