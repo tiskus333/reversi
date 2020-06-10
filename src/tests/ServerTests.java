@@ -153,6 +153,7 @@ public class ServerTests {
                         { 1, 1, 1, 1,-1,-1,-1,-1 }, 
                         { 1, 1, 1, 1,-1,-1,-1,-1 } };
                 server.setBoard(draw_board_full);
+                server.player_won = EMPTY;
                 player_won =  server.checkWinner();
                 Assert.assertEquals(DRAW, player_won);
 
@@ -166,6 +167,9 @@ public class ServerTests {
                         { 0, 0, 0, 0, 0, 0, 1, 1 }, 
                         { 0, 0, 0, 0, 0, 0, 1, 1 } };
                 server.setBoard(draw_board_partial);
+                server.player_won = EMPTY;
+                server.getValidPositions(WHITE);
+                server.getValidPositions(BLACK);
                 player_won =  server.checkWinner();
                 Assert.assertEquals(DRAW, player_won);
 
@@ -176,6 +180,7 @@ public class ServerTests {
                         }
                 }
                 server.setBoard(win_board_white_full);
+                server.player_won = EMPTY;
                 player_won =  server.checkWinner();
                 Assert.assertEquals(WHITE, player_won);
 
@@ -183,12 +188,13 @@ public class ServerTests {
                         { 0, 0, 0, 0, 0, 0, 0, 0 }, 
                         { 0, 0, 0, 0, 0, 0, 0, 0 },
                         { 0, 0, 0, 0, 0, 0, 0, 0 }, 
-                        { 0, 0, 0, 1, 1, 1, 0, 0 }, 
+                        { 0, 0, 0, 1, 1, 0, 0, 0 }, 
                         { 0, 0, 0, 1, 1, 0, 0, 0 },
                         { 0, 0, 0, 0, 0, 0, 0, 0 }, 
                         { 0, 0, 0, 0, 0, 0, 0, 0 }, 
                         { 0, 0, 0, 0, 0, 0, 0, 0 } };
                 server.setBoard(win_board_white_partial);
+                server.player_won = EMPTY;
                 player_won =  server.checkWinner();
                 Assert.assertEquals(WHITE, player_won);
                         
@@ -198,17 +204,18 @@ public class ServerTests {
                                 is2 = -1;
                         }
                 }
-
+                
                 int[][] win_board_black_partial = new int[][] { 
                         { 0, 0, 0, 0, 0, 0, 0, 0 }, 
                         { 0, 0, 0, 0, 0, 0, 0, 0 },
                         { 0, 0, 0, 0, 0, 0, 0, 0 }, 
-                        { 0, 0, 0,-1,-1,-1, 0, 0 }, 
+                        { 0, 0, 0,-1,-1, 0, 0, 0 }, 
                         { 0, 0, 0,-1,-1, 0, 0, 0 },
                         { 0, 0, 0, 0, 0, 0, 0, 0 }, 
                         { 0, 0, 0, 0, 0, 0, 0, 0 }, 
                         { 0, 0, 0, 0, 0, 0, 0, 0 } };
                 server.setBoard(win_board_black_partial);
+                server.player_won = EMPTY;
                 player_won =  server.checkWinner();
                 Assert.assertEquals(BLACK, player_won);
 
