@@ -19,7 +19,7 @@ public class Server {
     private int black_pices_nr;
     private boolean player_black_skip_turn;
     private boolean player_white_skip_turn;
-    public int player_won;
+    private int player_won;
     private int player_nr;
     private boolean is_possible_move;
     private boolean repeat_game = true;
