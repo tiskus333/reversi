@@ -1,11 +1,11 @@
 package src.tests;
 
-import src.server.Server;
-
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import src.server.Server;
 
 public class ServerTests {
         private final int EMPTY = 0;
@@ -33,6 +33,19 @@ public class ServerTests {
                 int[][] expected_board_black;
                 int[][] board = new int[BOARD_SIZE][BOARD_SIZE];
 //@formatter:off
+
+        expected_board_black = new int[][] { 
+                { 0, 0, 0, 0, 0, 0, 0, 0 }, 
+                { 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 1, 0, 0, 0, 0 }, 
+                { 0, 0, 1, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 1, 0, 0 },
+                { 0, 0, 0, 0, 1, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0 }, 
+                { 0, 0, 0, 0, 0, 0, 0, 0 } };         
+        board = server.getValidPositions(BLACK);
+        Assert.assertArrayEquals(expected_board_black, board);
+        
         expected_board_white = new int[][] { 
                 { 0, 0, 0, 0, 0, 0, 0, 0 }, 
                 { 0, 0, 0, 0, 0, 0, 0, 0 },
@@ -42,20 +55,6 @@ public class ServerTests {
                 { 0, 0, 0, 1, 0, 0, 0, 0 }, 
                 { 0, 0, 0, 0, 0, 0, 0, 0 }, 
                 { 0, 0, 0, 0, 0, 0, 0, 0 } };
-        expected_board_black = new int[][] { 
-                { 0, 0, 0, 0, 0, 0, 0, 0 }, 
-                { 0, 0, 0, 0, 0, 0, 0, 0 },
-                { 0, 0, 0, 1, 0, 0, 0, 0 }, 
-                { 0, 0, 1, 0, 0, 0, 0, 0 },
-                { 0, 0, 0, 0, 0, 1, 0, 0 },
-                { 0, 0, 0, 0, 1, 0, 0, 0 },
-                { 0, 0, 0, 0, 0, 0, 0, 0 }, 
-                { 0, 0, 0, 0, 0, 0, 0, 0 } };
-
-                
-        board = server.getValidPositions(BLACK);
-        Assert.assertArrayEquals(expected_board_black, board);
-        
         board = server.getValidPositions(WHITE);
         Assert.assertArrayEquals(expected_board_white, board);
 
