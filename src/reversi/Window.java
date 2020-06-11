@@ -21,7 +21,7 @@ public class Window extends JFrame {
     public JButton[][] buttons = new JButton[BOARD_SIZE][BOARD_SIZE];
     public Image white;
     private JPanel board_panel;
-    JPanel score_panel;
+    private JPanel score_panel;
     private int my_color;
     private final int WHITE = 1;
     private final int BLACK = -1;
@@ -29,7 +29,11 @@ public class Window extends JFrame {
     private boolean moved = false;
     private boolean new_game;
 
-    public Window(int color, int turn) {
+    /**
+     * Constructor for Window GUI
+     * @param color BLACK or WHITE
+     */
+    public Window(int color) {
         my_color = color;
         init();
         setSize(650, 680);
@@ -42,6 +46,9 @@ public class Window extends JFrame {
         setVisible(true);
     }
 
+    /**
+     * Initialize board using JButtons in grid layout and JPanel for score
+     */
     public void init() {
         board_panel = new JPanel(new GridLayout(BOARD_SIZE, BOARD_SIZE));
 
@@ -71,6 +78,9 @@ public class Window extends JFrame {
         add(board_panel, BorderLayout.CENTER);
     }
 
+    /**
+     * Special ActionListener to identify which button have been pressed
+     */
     public class Action implements ActionListener {
 
         @Override
@@ -85,11 +95,20 @@ public class Window extends JFrame {
         }
     }
 
+    /**
+     * Update score panel with new score
+     * @param points
+     */
     public void drawScore(int[] points) {
         label_score_black.setText("Black: " + points[0]);
         label_score_white.setText("White: " + points[1]);
     }
 
+    /**
+     * According to values in board draw coresponding icons to buttons and turn them off
+     * @param board
+     * @param points
+     */
     public void displayBoard(int[][] board, int[] points) {
         int player;
         for (int i = 0; i < BOARD_SIZE; ++i)
@@ -109,6 +128,10 @@ public class Window extends JFrame {
         drawScore(points);
     }
 
+    /**
+     * Given possible moves set icons to coresponding buttons and enable them
+     * @param possible_moves
+     */
     public void displayPossibleMoves(int[][] possible_moves) {
         for (int i = 0; i < BOARD_SIZE; ++i)
             for (int j = 0; j < BOARD_SIZE; ++j) {
@@ -120,6 +143,12 @@ public class Window extends JFrame {
         moved = false;
     }
 
+    /**
+     * Display winner message window and ask player if he wants to play again
+     * @param winner
+     * @return true if wants to play again
+     *         false otherwise
+     */
     public boolean displayWinner(int winner) {
         String message;
         if (winner == my_color)
@@ -139,6 +168,10 @@ public class Window extends JFrame {
         return new_game;
     }
 
+    /**
+     * wait for player to make a move
+     * @return
+     */
     public int[] getMove() {
         while (!moved) {
             try {

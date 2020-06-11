@@ -265,7 +265,7 @@ public class Player {
     public static void game() {
         Player player = new Player();
         player.connectToServer("localhost");
-        Window window = new Window(player.my_color, player.getPlayer_turn());
+        Window window = new Window(player.my_color);
         while (new_game) {
             player.initBoard();
             window.displayBoard(player.getBoard(), player.getPoints());
