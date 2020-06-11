@@ -20,7 +20,6 @@ public class Server {
     private boolean player_black_skip_turn;
     private boolean player_white_skip_turn;
     private int player_won;
-    private int player_nr;
     private boolean is_possible_move;
     private boolean repeat_game = true;
 
@@ -36,7 +35,6 @@ public class Server {
      */
     public Server() {
         System.out.println("Started game server.");
-        player_nr = 0;
         player_won = EMPTY;
         try {
             ss = new ServerSocket(60065);
@@ -51,6 +49,7 @@ public class Server {
     public void acceptConnections() {
         try {
             System.out.println("Waiting for players to join.");
+            int player_nr = 0;
             while (player_nr < 2) {
 
                 s = ss.accept();
